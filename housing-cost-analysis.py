@@ -2,29 +2,70 @@
 # dependencies = [
 #    "pandas~=2.2.0",
 #    "numpy~=1.26.0",
-#    "tabulate>=0.9.0"
+#    "tabulate>=0.9.0",
+#    "numpy-financial>=1.0.0"
 # ]
 # ///
 
 import pandas as pd
 import numpy as np
+from numpy_financial import pmt, ipmt, ppmt
 import tabulate
 
+def calculate_mortgage_payment(principal, annual_rate, years):
+    """Calculate monthly mortgage payment"""
+    monthly_rate = annual_rate / 12 / 100
+    num_payments = years * 12
+    return -pmt(monthly_rate, num_payments, principal)
+
+def calculate_monthly_payment_breakdown(principal, annual_rate, years, payment_number):
+    """Calculate interest and principal portions of a specific payment"""
+    monthly_rate = annual_rate / 12 / 100
+    interest = -ipmt(monthly_rate, payment_number, years * 12, principal)
+    principal_paid = -ppmt(monthly_rate, payment_number, years * 12, principal)
+    return interest, principal_paid
+
 def calculate_housing_costs(
+    analysis_years=8,
     apartment_rent=3000,
-    condo_price=1000000,          # Initial assumption - adjust to find equivalent cost
+    condo_price=1300000,          # Initial assumption - adjust to find equivalent cost
     down_payment_pct=20,
     mortgage_rate=6.5,
+    mortgage_years=20,            # Length of mortgage
     property_tax_rate=10.90/1000, # Annual rate in $ per $ of value
     hoa_rate=0.1,                 # Monthly percentage of purchase price
     federal_tax_rate=24,          # Assuming middle-high income bracket
     state_tax_rate=5,             # Moderate state tax assumption
     appreciation_rate=4,          # Conservative annual appreciation (more likely 5-6%)
-    analysis_years=10,
+    rent_increase_rate=3,         # Annual rent increase percentage
     realtor_fee_pct=5,            # Standard realtor commission
-    capital_gains_rate=15,        # Long-term capital gains tax rate
-    initial_interest_portion=0.85 # Assuming 85% of payment is interest initially (w/ 20% down pmt)
+    capital_gains_rate=15         # Long-term capital gains tax rate
 ):
+    # Create assumptions table for display
+    assumptions = {
+        'Condo Price': f"${condo_price:,}",
+        'Down Payment': f"{down_payment_pct}% = ${condo_price*down_payment_pct/100.0/1000:.0f}k",
+        'Mortgage Rate': f"{mortgage_rate}%",
+        'Mortgage Term': f"{mortgage_years} years",
+        'Property Tax': f"{property_tax_rate*1000:.2f}/1000",
+        'Cap Gains': f"{capital_gains_rate}%",
+        'HOA Fee': f"{hoa_rate}%/mo",
+        'Rent Increase': f"{rent_increase_rate}%/yr",
+        'Federal Tax': f"{federal_tax_rate}%",
+        'State Tax': f"{state_tax_rate}%",
+        'Appreciation': f"{appreciation_rate}%/yr",
+        'Realtor Fee': f"{realtor_fee_pct}%",
+    }
+
+    # Convert assumptions to DataFrame for tabulate
+    assumptions_df = pd.DataFrame([
+        [k, v] for k, v in list(assumptions.items())[:len(assumptions)//2]
+    ] + [['', '']] * (len(assumptions) % 2))  # Padding for odd number of items
+    assumptions_df2 = pd.DataFrame([
+        [k, v] for k, v in list(assumptions.items())[len(assumptions)//2:]
+    ])
+    assumptions_df = pd.concat([assumptions_df, assumptions_df2], axis=1)
+
     # Initialize dataframe
     COL_NAMES = {
         "year": "Year",
@@ -43,9 +84,7 @@ def calculate_housing_costs(
     # Calculate mortgage details
     down_payment = condo_price * (down_payment_pct/100)
     loan_amount = condo_price - down_payment
-    monthly_rate = mortgage_rate/12/100
-    num_payments = 30 * 12  # 30-year mortgage
-    monthly_mortgage = loan_amount * (monthly_rate * (1 + monthly_rate)**num_payments) / ((1 + monthly_rate)**num_payments - 1)
+    monthly_mortgage = calculate_mortgage_payment(loan_amount, mortgage_rate, mortgage_years)
     
     # Calculate monthly costs
     monthly_property_tax = (condo_price * property_tax_rate)/12
@@ -53,33 +92,44 @@ def calculate_housing_costs(
     
     # Calculate tax deductions
     combined_tax_rate = (federal_tax_rate + state_tax_rate)/100
-    mortgage_interest_deduction = monthly_mortgage * initial_interest_portion * combined_tax_rate
-    property_tax_deduction = monthly_property_tax * combined_tax_rate
     
     # Track remaining mortgage principal
     remaining_principal = loan_amount
     total_mortgage_paid = 0
-    interest_portion = initial_interest_portion
     
     # Calculate costs for each year
+    assert(analysis_years > 1)
     for year in range(1, analysis_years + 1):
         # Apartment costs
-        annual_apartment = apartment_rent * 12
+        annual_apartment = apartment_rent * 12 * (1 + rent_increase_rate/100)**(year-1)
         
         # Calculate mortgage principal and interest for the year
         annual_mortgage = monthly_mortgage * 12
-        annual_interest = annual_mortgage * interest_portion
-        annual_principal = annual_mortgage - annual_interest
+        annual_interest = 0
+        annual_principal = 0
+        
+        # Calculate exact interest and principal for each month
+        for month in range(12):
+            payment_number = (year - 1) * 12 + month + 1
+            month_interest, month_principal = calculate_monthly_payment_breakdown(
+                loan_amount, mortgage_rate, mortgage_years, payment_number
+            )
+            annual_interest += month_interest
+            annual_principal += month_principal
+        
         remaining_principal -= annual_principal
         total_mortgage_paid += annual_mortgage
-        interest_portion = max(0.5, interest_portion - 0.05)  # Decrease interest portion each year
+        
+        # Calculate tax deductions based on actual interest paid
+        mortgage_interest_deduction = (annual_interest/12) * combined_tax_rate
+        property_tax_deduction = monthly_property_tax * combined_tax_rate
+        annual_tax_savings = (mortgage_interest_deduction + property_tax_deduction) * 12
         
         # Other annual costs
         annual_property_tax = monthly_property_tax * 12
         annual_hoa = monthly_hoa * 12
-        annual_tax_savings = (mortgage_interest_deduction + property_tax_deduction) * 12
         
-        # Calculate appreciation
+        # Calculate appreciation and equity
         property_value = condo_price * (1 + appreciation_rate/100)**year
         equity_built = property_value - remaining_principal
         
@@ -111,11 +161,12 @@ def calculate_housing_costs(
     # Add summary row
     summary = pd.DataFrame({
         'Description': ['Final Property Value', 'Realtor Fees', 'Capital Gains Tax', 
-                       'Remaining Mortgage', 'Net Sale Proceeds', 'Total Housing Costs',
-                       'Total Apartment Costs', 'Difference'],
+                       'Remaining Mortgage Payoff', 'Net Sale Proceeds', 'Total Condo Costs',
+                       'Total Apartment Costs', 'Difference', 'Difference/yr'],
         'Amount': [final_property_value, realtor_fees, capital_gains_tax,
                   remaining_principal, net_sale_proceeds, total_cost,
-                  total_apartment_cost, total_cost - total_apartment_cost]
+                  total_apartment_cost, total_cost - total_apartment_cost,
+                   (total_cost - total_apartment_cost)/analysis_years]
     })
     
     # Format numbers
@@ -126,43 +177,14 @@ def calculate_housing_costs(
     
     summary['Amount'] = summary['Amount'].round(0)
     summary['Amount'] = summary['Amount'].apply(lambda x: f"${x:,.0f}")
-    
-    # Before printing, set pandas display options
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', None)
-    pd.set_option('display.max_colwidth', None)
 
-    # Create and display assumptions table
-    assumptions = {
-        'Condo Price': f"${condo_price:,}",
-        'Down Payment': f"{down_payment_pct}% = ${condo_price*down_payment_pct/100.0/1000:.0f}k",
-        'Mortgage Rate': f"{mortgage_rate}%",
-        'Property Tax': f"{property_tax_rate*1000:.2f}/1000",
-        'HOA Fee': f"{hoa_rate}%/mo",
-        'Federal Tax': f"{federal_tax_rate}%",
-        'State Tax': f"{state_tax_rate}%",
-        'Appreciation': f"{appreciation_rate}%/yr",
-        'Realtor Fee': f"{realtor_fee_pct}%",
-        'Cap Gains': f"{capital_gains_rate}%"
-    }
-
-    # Convert assumptions to DataFrame for tabulate
-    assumptions_df = pd.DataFrame([
-        [k, v] for k, v in list(assumptions.items())[:len(assumptions)//2]
-    ] + [['', '']] * (len(assumptions) % 2))  # Padding for odd number of items
-    assumptions_df2 = pd.DataFrame([
-        [k, v] for k, v in list(assumptions.items())[len(assumptions)//2:]
-    ] + [['', '']] * (len(assumptions) % 2))
-    assumptions_df = pd.concat([assumptions_df, assumptions_df2], axis=1)
-
-    # Return everything for the main function
     return df, summary, assumptions_df
 
 # Generate analysis and print results
 df, summary, assumptions_df = calculate_housing_costs()
 
 print("============================================")
-print("= Housing Cost Analysis (5-Year Comparison)")
+print("= Housing Cost Analysis (10-Year Comparison)")
 print("============================================")
 
 print("\nAssumptions")
