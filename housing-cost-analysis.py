@@ -28,6 +28,7 @@ def calculate_monthly_payment_breakdown(principal, annual_rate, years, payment_n
     return interest, principal_paid
 
 def calculate_housing_costs(
+    # these are just defaults -- see caller
     analysis_years,              # Move this to first position since we'll vary it
     apartment_rent=3100,
     condo_price=1300000,        # Initial assumption - adjust to find equivalent cost
@@ -207,9 +208,10 @@ def generate_cost_comparison(max_years=10, **kwargs):
 # Main analysis and output
 if __name__ == "__main__":
     # Parameters for the analysis
-    ANALYSIS_YEARS = 10
+    ANALYSIS_YEARS = 5          # print analysis table for holding 5 years
+    MAX_YEARS = 10              # show graph of holding for up to this many years
     params = {
-        'apartment_rent': 3000,
+        'apartment_rent': 3100,
         'condo_price': 1000000,
         'down_payment_pct': 20,
         'mortgage_rate': 6.5,
@@ -228,7 +230,7 @@ if __name__ == "__main__":
     df, summary, assumptions_df, metrics = calculate_housing_costs(ANALYSIS_YEARS, **params)
     
     # Generate comparison data
-    comparison_df = generate_cost_comparison(20, **params)
+    comparison_df = generate_cost_comparison(MAX_YEARS, **params)
     
     # Create the comparison plot
     plt.figure(figsize=(12, 6))
@@ -241,7 +243,10 @@ if __name__ == "__main__":
 
     plt.xlabel('Years')
     plt.ylabel('Cost (Thousands)')
-    plt.title('Cumulative Housing Costs Over Time')
+    plt.title(f'Cumulative Housing Costs Over Time\nAssuming holding x years, then selling condo')
+    plt.text(0.02, 0.9, f'Apartment rent: ${params['apartment_rent']}/mo\nCondo cost: ${params['condo_price']}', 
+             transform=plt.gca().transAxes)
+
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend()
     
