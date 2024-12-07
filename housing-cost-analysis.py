@@ -273,22 +273,36 @@ def generate_cost_comparison(max_years=10, **kwargs):
 def print_net_cost_table(max_years, **kwargs):
     """
     Print a table showing the cumulative net cost for apartment vs condo for each year up to max_years.
-    The apartment cost column shows total cumulative rent paid up to that year.
-    The condo cost column shows total net cost of buying and selling at that year (including final sale).
+    The apartment cost column shows the total cumulative rent paid up to that year.
+    The condo cost column shows the total net cost of buying and selling at that year.
+    A "*" is prepended to whichever option is cheaper each year.
     """
     comparison_df = generate_cost_comparison(max_years, **kwargs)
-    formatted_df = comparison_df.copy()
+    formatted_rows = []
 
-    # Format the numeric fields as currency
-    formatted_df['Apartment Cost'] = formatted_df['Apartment Cost'].apply(lambda x: f"${x:,.0f}")
-    formatted_df['Condo Cost'] = formatted_df['Condo Cost'].apply(lambda x: f"${x:,.0f}")
+    for _, row in comparison_df.iterrows():
+        year = int(row['Year'])
+        apt_val = row['Apartment Cost']
+        condo_val = row['Condo Cost']
+
+        # Format as currency
+        apt_str = f"${apt_val:,.0f}"
+        condo_str = f"${condo_val:,.0f}"
+
+        # Determine which is smaller and append "*"
+        if apt_val < condo_val:
+            apt_str = apt_str + "*"
+        elif condo_val < apt_val:
+            condo_str = condo_str + "*"
+
+        formatted_rows.append([year, apt_str, condo_str])
 
     print("\nTotal Net Cost by Year (Cumulative Scenario)")
-    print("(Assuming condo is sold at end of year Y)")
+    print("(Assuming condo is sold in year Y)")
     print("===========================================")
     print(tabulate.tabulate(
-        formatted_df[['Year', 'Apartment Cost', 'Condo Cost']],
-        headers='keys',
+        formatted_rows,
+        headers=['Year', 'Apartment Cost', 'Condo Cost'],
         tablefmt='plain',
         showindex=False
     ))
@@ -299,7 +313,7 @@ if __name__ == "__main__":
     MAX_YEARS = 10
     params = {
         'apartment_rent': 3100,
-        'condo_price': 1000000,
+        'condo_price': 1100000,
         'down_payment_pct': 20,
         'mortgage_rate': 6.5,
         'mortgage_years': 20,
