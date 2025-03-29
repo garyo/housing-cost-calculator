@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housing Cost Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Housing Cost Calculator: Rent vs. Buy</h1>
+    
+    <div class="container">
+        <div class="input-panel">
+            <h2>Input Parameters</h2>
+            <div class="form-group">
+                <label for="analysis-years">Analysis Period (years)</label>
+                <input type="number" id="analysis-years" value="5" min="1" max="30">
+            </div>
+            
+            <h3>Apartment</h3>
+            <div class="form-group">
+                <label for="apartment-rent">Monthly Rent ($)</label>
+                <input type="number" id="apartment-rent" value="3100" min="0">
+            </div>
+            <div class="form-group">
+                <label for="rent-increase">Annual Rent Increase (%)</label>
+                <input type="number" id="rent-increase" value="3" min="0" step="0.1">
+            </div>
+            
+            <h3>Condo</h3>
+            <div class="form-group">
+                <label for="condo-price">Condo Price ($)</label>
+                <input type="number" id="condo-price" value="1200000" min="0">
+            </div>
+            <div class="form-group">
+                <label for="down-payment">Down Payment (%)</label>
+                <input type="number" id="down-payment" value="20" min="0" max="100" step="0.1">
+            </div>
+            <div class="form-group">
+                <label for="mortgage-rate">Mortgage Rate (%)</label>
+                <input type="number" id="mortgage-rate" value="6.5" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="mortgage-years">Mortgage Term (years)</label>
+                <input type="number" id="mortgage-years" value="20" min="1" max="50">
+            </div>
+            <div class="form-group">
+                <label for="property-tax">Property Tax Rate (per $1000)</label>
+                <input type="number" id="property-tax" value="10.90" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="hoa-rate">HOA Fee (% of property value per month)</label>
+                <input type="number" id="hoa-rate" value="0.1" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="appreciation">Annual Property Appreciation (%)</label>
+                <input type="number" id="appreciation" value="4" min="0" step="0.1">
+            </div>
+            
+            <h3>Tax Information</h3>
+            <div class="form-group">
+                <label for="federal-tax">Federal Tax Rate (%)</label>
+                <input type="number" id="federal-tax" value="24" min="0" max="100" step="0.1">
+            </div>
+            <div class="form-group">
+                <label for="state-tax">State Tax Rate (%)</label>
+                <input type="number" id="state-tax" value="5" min="0" max="100" step="0.1">
+            </div>
+            <div class="form-group">
+                <label for="capital-gains">Capital Gains Tax Rate (%)</label>
+                <input type="number" id="capital-gains" value="15" min="0" max="100" step="0.1">
+            </div>
+            
+            <h3>Other</h3>
+            <div class="form-group">
+                <label for="realtor-fee">Realtor Fee (%)</label>
+                <input type="number" id="realtor-fee" value="5" min="0" max="100" step="0.1">
+            </div>
+            
+            <button id="calculate-btn">Calculate</button>
+            <div id="error-alert" class="alert"></div>
+        </div>
+        
+        <div class="results-panel">
+            <div class="tabs">
+                <div class="tab active" data-tab="summary">Summary</div>
+                <div class="tab" data-tab="yearly">Yearly Breakdown</div>
+                <div class="tab" data-tab="assumptions">Assumptions</div>
+                <div class="tab" data-tab="chart">Chart</div>
+            </div>
+            
+            <div id="summary-tab" class="tab-content active">
+                <h2>Summary of Analysis</h2>
+                <p>Showing analysis for <span id="analysis-years-display">5</span> years:</p>
+                <div id="summary-table-container"></div>
+            </div>
+            
+            <div id="yearly-tab" class="tab-content">
+                <h2>Yearly Cost Breakdown</h2>
+                <div id="yearly-table-container"></div>
+            </div>
+            
+            <div id="assumptions-tab" class="tab-content">
+                <h2>Analysis Assumptions</h2>
+                <div id="assumptions-table-container"></div>
+            </div>
+            
+            <div id="chart-tab" class="tab-content">
+                <h2>Cumulative Cost Comparison</h2>
+                <p>This chart shows the cumulative cost of renting vs. buying over time, assuming you sell the property in that year:</p>
+                <div id="chart-container" class="chart-container"></div>
+                <div id="crossover-point"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script src="financial.js"></script>
+    <script src="ui.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
