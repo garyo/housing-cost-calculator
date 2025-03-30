@@ -160,8 +160,8 @@ function calculateHousingCosts(params) {
         totalMortgagePaid += annualCosts.annualMortgage;
         
         // Calculate tax savings from interest and property tax
-        const deductibleAmount = annualCosts.annualInterest + annualCosts.annualPropertyTax + 
-            (useEquityLoan ? equityLoanInterest : 0);
+        // Note: Equity loan interest for down payment is not tax deductible
+        const deductibleAmount = annualCosts.annualInterest + annualCosts.annualPropertyTax;
         const annualTaxSavings = deductibleAmount * combinedTaxRate;
         
         // Net condo cost for the year
@@ -228,8 +228,8 @@ function calculateHousingCosts(params) {
         { assumption: 'Down Payment Source', value: downPaymentSource === 'cash' 
                                                   ? 'Cash on Hand'
                                                   : (downPaymentSource === 'stocks'
-                                                    ? 'Sell Stocks'
-                                                    : 'Home Equity Loan') },
+                                                    ? 'Sell Stocks (capital gains)'
+                                                    : 'Home Equity Loan (interest not tax-deductible)') },
         // Only show capital gains tax for stocks
         ...(useStocks ? [{ assumption: 'Cap Gains Tax on Down Payment', value: formatCurrency(capGainsTaxOnDownPayment) }] : []),
         // Only show equity loan rate for loan option
