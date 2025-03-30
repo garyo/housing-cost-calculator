@@ -76,6 +76,8 @@ function calculateHousingCosts(params) {
         apartmentRent,
         condoPrice,
         downPaymentPct,
+        useEquityLoan,
+        equityLoanRate,
         mortgageRate,
         mortgageYears,
         propertyTaxRate,
@@ -93,7 +95,11 @@ function calculateHousingCosts(params) {
     
     // Compute basic initial values
     const downPayment = condoPrice * (downPaymentPct * 0.01);
-    const capGainsTaxOnDownPayment = downPayment * (capitalGainsRate * 0.01);
+    const capGainsTaxOnDownPayment = useEquityLoan ? 0 : downPayment * (capitalGainsRate * 0.01);
+    const equityLoanAmount = useEquityLoan ? downPayment : 0;
+    const equityLoanMonthlyPayment = useEquityLoan ? 
+        calculateMortgagePayment(equityLoanAmount, equityLoanRate, mortgageYears) : 0;
+    const annualEquityLoanPayment = equityLoanMonthlyPayment * 12;
     const loanAmount = condoPrice - downPayment;
     
     // Combined marginal tax rate
@@ -101,7 +107,9 @@ function calculateHousingCosts(params) {
     
     // Track mortgage balance
     let remainingPrincipal = loanAmount;
+    let remainingEquityLoanPrincipal = equityLoanAmount;
     let totalMortgagePaid = 0;
+    let totalEquityLoanPaid = 0;
     
     // Year-by-year calculation
     for (let year = 1; year <= analysisYears; year++) {
@@ -120,38 +128,57 @@ function calculateHousingCosts(params) {
             hoaRate
         );
         
+        // Calculate equity loan payments for this year if applicable
+        let equityLoanInterest = 0;
+        let equityLoanPrincipal = 0;
+        
+        if (useEquityLoan) {
+            for (let paymentNumber = (year - 1) * 12 + 1; paymentNumber <= year * 12; paymentNumber++) {
+                const { interest, principalPaid } = calculateMonthlyInterestAndPrincipal(
+                    equityLoanAmount, equityLoanRate, mortgageYears, paymentNumber
+                );
+                equityLoanInterest += interest;
+                equityLoanPrincipal += principalPaid;
+            }
+            
+            remainingEquityLoanPrincipal -= equityLoanPrincipal;
+            totalEquityLoanPaid += annualEquityLoanPayment;
+        }
+        
         // Update remaining principal after paying principal portion this year
         remainingPrincipal -= annualCosts.annualPrincipal;
         totalMortgagePaid += annualCosts.annualMortgage;
         
         // Calculate tax savings from interest and property tax
-        const deductibleAmount = annualCosts.annualInterest + annualCosts.annualPropertyTax;
+        const deductibleAmount = annualCosts.annualInterest + annualCosts.annualPropertyTax + 
+            (useEquityLoan ? equityLoanInterest : 0);
         const annualTaxSavings = deductibleAmount * combinedTaxRate;
         
         // Net condo cost for the year
-        const netCondoCost = (
-            annualCosts.annualMortgage +
-            annualCosts.annualPropertyTax +
-            annualCosts.annualHoa -
-            annualTaxSavings
-        );
+        const netCondoCost = annualCosts.annualMortgage + 
+            annualCosts.annualPropertyTax + 
+            annualCosts.annualHoa + 
+            (useEquityLoan ? annualEquityLoanPayment : 0) - 
+            annualTaxSavings;
         
         // Property value and equity
         const propertyValue = annualPropertyValue(condoPrice, appreciationRate, year);
-        const equityBuilt = propertyValue - remainingPrincipal;
+        const equityBuilt = propertyValue - remainingPrincipal - remainingEquityLoanPrincipal;
         
         // Add to yearly data array
         yearlyData.push({
             year,
             apartmentCost: annualApartment,
             mortgagePayment: annualCosts.annualMortgage,
+            equityLoanPayment: useEquityLoan ? annualEquityLoanPayment : 0,
             propertyTax: annualCosts.annualPropertyTax,
             hoa: annualCosts.annualHoa,
             taxSavings: annualTaxSavings,
             netCondoCost,
             propertyValue,
             equity: equityBuilt,
-            remainingMortgage: remainingPrincipal
+            remainingMortgage: remainingPrincipal,
+            remainingEquityLoan: remainingEquityLoanPrincipal
         });
     }
     
@@ -160,7 +187,7 @@ function calculateHousingCosts(params) {
     const realtorFees = finalPropertyValue * (realtorFeePct / 100);
     const capitalGains = Math.max(0, finalPropertyValue - condoPrice);
     const capitalGainsTax = capitalGains * (capitalGainsRate / 100);
-    const netSaleProceeds = finalPropertyValue - realtorFees - capitalGainsTax - remainingPrincipal;
+    const netSaleProceeds = finalPropertyValue - realtorFees - capitalGainsTax - remainingPrincipal - remainingEquityLoanPrincipal;
     
     // Calculate total costs over entire period
     const totalApartmentCost = yearlyData.reduce((sum, data) => sum + data.apartmentCost, 0);
@@ -173,6 +200,7 @@ function calculateHousingCosts(params) {
         { description: 'Realtor Fees', amount: realtorFees },
         { description: 'Capital Gains Tax', amount: capitalGainsTax },
         { description: 'Remaining Mortgage', amount: remainingPrincipal },
+        { description: 'Remaining Equity Loan', amount: remainingEquityLoanPrincipal },
         { description: 'Net Sale Proceeds', amount: netSaleProceeds },
         { description: 'Total Condo Costs', amount: totalCondoCost },
         { description: 'Total Apartment Costs', amount: totalApartmentCost },
@@ -183,7 +211,10 @@ function calculateHousingCosts(params) {
     const assumptionsData = [
         { assumption: 'Condo Price', value: formatCurrency(condoPrice) },
         { assumption: `Down Payment (${downPaymentPct}%)`, value: formatCurrency(downPayment) },
-        { assumption: 'Cap Gains Tax on Down Payment', value: formatCurrency(capGainsTaxOnDownPayment) },
+        { assumption: 'Funding Method', value: useEquityLoan ? 'Home Equity Loan' : 'Sell Stocks' },
+        useEquityLoan 
+            ? { assumption: 'Equity Loan Rate', value: `${equityLoanRate}%` }
+            : { assumption: 'Cap Gains Tax on Down Payment', value: formatCurrency(capGainsTaxOnDownPayment) },
         { assumption: 'Mortgage Rate', value: `${mortgageRate}%` },
         { assumption: 'Mortgage Term', value: `${mortgageYears} years` },
         { assumption: 'Property Tax Rate', value: `${propertyTaxRate} per $1000/yr` },

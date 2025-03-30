@@ -118,27 +118,27 @@ function createCrossoverTable(data, containerId) {
 let myChart = null;
 function createChart(data) {
     const container = document.getElementById('chart-container');
-
+    
     // Clear the container
     container.innerHTML = '';
-
+    
     // Create a canvas element
     const canvas = document.createElement('canvas');
     container.appendChild(canvas);
-
+    
     // Get the 2d context
     const ctx = canvas.getContext('2d');
-
+    
     // Destroy existing chart if it exists
     if (myChart) {
         myChart.destroy();
     }
-
+    
     // Prepare data
     const years = data.map(d => d.year);
     const apartmentCosts = data.map(d => d.apartmentCost / 1000);
     const condoCosts = data.map(d => d.condoCost / 1000);
-
+    
     myChart = new Chart(canvas, {
         type: 'line',
         data: {
@@ -203,6 +203,8 @@ function getParameters() {
         const apartmentRent = parseFloat(document.getElementById('apartment-rent').value);
         const condoPrice = parseFloat(document.getElementById('condo-price').value);
         const downPaymentPct = parseFloat(document.getElementById('down-payment').value);
+        const useEquityLoan = document.getElementById('use-equity-loan').value === 'true';
+        const equityLoanRate = parseFloat(document.getElementById('equity-loan-rate').value);
         const mortgageRate = parseFloat(document.getElementById('mortgage-rate').value);
         const mortgageYears = parseInt(document.getElementById('mortgage-years').value);
         const propertyTaxRate = parseFloat(document.getElementById('property-tax').value);
@@ -219,6 +221,7 @@ function getParameters() {
         if (isNaN(apartmentRent) || apartmentRent < 0) throw new Error('Apartment rent must be a non-negative number');
         if (isNaN(condoPrice) || condoPrice <= 0) throw new Error('Condo price must be a positive number');
         if (isNaN(downPaymentPct) || downPaymentPct < 0 || downPaymentPct > 100) throw new Error('Down payment must be between 0 and 100%');
+        if (isNaN(equityLoanRate) || equityLoanRate < 0) throw new Error('Equity loan rate must be a non-negative number');
         if (isNaN(mortgageRate) || mortgageRate < 0) throw new Error('Mortgage rate must be a non-negative number');
         if (isNaN(mortgageYears) || mortgageYears <= 0) throw new Error('Mortgage term must be a positive number');
         if (isNaN(propertyTaxRate) || propertyTaxRate < 0) throw new Error('Property tax rate must be a non-negative number');
@@ -235,6 +238,8 @@ function getParameters() {
             apartmentRent,
             condoPrice,
             downPaymentPct,
+            useEquityLoan,
+            equityLoanRate,
             mortgageRate,
             mortgageYears,
             propertyTaxRate,

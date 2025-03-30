@@ -90,6 +90,7 @@ def calculate_annual_costs(year, loan_amount, mortgage_rate, mortgage_years,
     }
 
 def calculate_housing_costs(
+    # Note: these values are just defaults. See __main__ for actual values.
     analysis_years,
     apartment_rent=3100,
     condo_price=1300000,
@@ -133,7 +134,9 @@ def calculate_housing_costs(
     df = pd.DataFrame(columns=COL_MAP.values())
 
     # Compute basic initial values
-    down_payment = condo_price * (down_payment_pct / 100)
+    down_payment = condo_price * (down_payment_pct * 0.01)
+    # Have to sell some stocks to get the down payment, so include those in total cost
+    cap_gains_tax_on_down_payment = down_payment * (capital_gains_rate * 0.01)
     loan_amount = condo_price - down_payment
 
     # Combined marginal tax rate for simplicity
@@ -204,7 +207,7 @@ def calculate_housing_costs(
 
     # Calculate total costs over entire period
     total_apartment_cost = df[COL_MAP["apartment_cost"]].sum()
-    total_condo_cost = df[COL_MAP["net_condo_cost"]].sum() - net_sale_proceeds + down_payment
+    total_condo_cost = df[COL_MAP["net_condo_cost"]].sum() - net_sale_proceeds + down_payment + cap_gains_tax_on_down_payment
 
     # Summary DataFrame
     summary_data = {
@@ -221,6 +224,7 @@ def calculate_housing_costs(
     assumptions_data = [
         ("Condo Price", f"${condo_price:,.0f}"),
         (f"Down Payment ({down_payment_pct}%)", f"${down_payment:,.0f}"),
+        ("Cap Gains Tax on Down Payment", f"${cap_gains_tax_on_down_payment:,.0f}"),
         ("Mortgage Rate", f"{mortgage_rate}%"),
         ("Mortgage Term", f"{mortgage_years} years"),
         ("Property Tax Rate", f"{property_tax_rate*100:.3f}%/yr"),
@@ -313,7 +317,7 @@ if __name__ == "__main__":
     MAX_YEARS = 10
     params = {
         'apartment_rent': 3100,
-        'condo_price': 1100000,
+        'condo_price': 1200000,
         'down_payment_pct': 20,
         'mortgage_rate': 6.5,
         'mortgage_years': 20,

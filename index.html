@@ -37,6 +37,17 @@
                 <input type="number" id="down-payment" value="20" min="0" max="100" step="0.1">
             </div>
             <div class="form-group">
+                <label for="use-equity-loan">Use Home Equity Loan?</label>
+                <select id="use-equity-loan">
+                    <option value="false">No - Sell Stocks (Capital Gains Tax)</option>
+                    <option value="true">Yes - Use Home Equity Loan</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="equity-loan-rate">Home Equity Loan Rate (%)</label>
+                <input type="number" id="equity-loan-rate" value="3.5" min="0" step="0.01">
+            </div>
+            <div class="form-group">
                 <label for="mortgage-rate">Mortgage Rate (%)</label>
                 <input type="number" id="mortgage-rate" value="6.5" min="0" step="0.01">
             </div>

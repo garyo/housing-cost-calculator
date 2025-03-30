@@ -49,6 +49,11 @@ function calculateAndDisplay() {
                     header: 'Mortgage Payment', 
                     format: (value) => formatCurrency(value)
                 },
+                params.useEquityLoan ? { 
+                    field: 'equityLoanPayment', 
+                    header: 'Equity Loan Pmt', 
+                    format: (value) => formatCurrency(value)
+                } : null,
                 { 
                     field: 'propertyTax', 
                     header: 'Property Tax', 
@@ -83,8 +88,13 @@ function calculateAndDisplay() {
                     field: 'remainingMortgage', 
                     header: 'Remaining Mortgage', 
                     format: (value) => formatCurrency(value)
-                }
-            ],
+                },
+                params.useEquityLoan ? { 
+                    field: 'remainingEquityLoan', 
+                    header: 'Remaining Equity Loan', 
+                    format: (value) => formatCurrency(value)
+                } : null
+            ].filter(Boolean),  // Filter out null columns
             'yearly-table-container'
         );
         
@@ -93,7 +103,7 @@ function calculateAndDisplay() {
             results.summaryData,
             [
                 { field: 'description', header: 'Description' },
-                { field: 'amount', header: 'Amount', format: (value) => value }
+                { field: 'amount', header: 'Amount', format: (value) => formatCurrency(value) }
             ],
             'summary-table-container'
         );
