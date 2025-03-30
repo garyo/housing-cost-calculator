@@ -36,22 +36,27 @@ function calculateAnnualCosts(year, loanAmount, mortgageRate, mortgageYears,
     // Determine property value this year
     const currentPropertyValue = annualPropertyValue(condoPrice, appreciationRate, year);
     
-    // Monthly mortgage calculation (fixed)
-    const monthlyMortgage = calculateMortgagePayment(loanAmount, mortgageRate, mortgageYears);
+    // Check if the mortgage is still active this year
+    const mortgageActive = year <= mortgageYears;
+    // Monthly mortgage calculation
+    const monthlyMortgage = mortgageActive ? 
+      calculateMortgagePayment(loanAmount, mortgageRate, mortgageYears) : 0;
     const annualMortgage = monthlyMortgage * 12;
     
     // Break down the mortgage payments for the year into interest and principal
     let annualInterest = 0;
     let annualPrincipal = 0;
-    const startPaymentNum = (year - 1) * 12 + 1;
-    const endPaymentNum = year * 12;
+    if (mortgageActive) {
+      const startPaymentNum = (year - 1) * 12 + 1;
+      const endPaymentNum = year * 12;
     
-    for (let paymentNumber = startPaymentNum; paymentNumber <= endPaymentNum; paymentNumber++) {
+      for (let paymentNumber = startPaymentNum; paymentNumber <= endPaymentNum; paymentNumber++) {
         const { interest, principalPaid } = calculateMonthlyInterestAndPrincipal(
-            loanAmount, mortgageRate, mortgageYears, paymentNumber
+          loanAmount, mortgageRate, mortgageYears, paymentNumber
         );
         annualInterest += interest;
         annualPrincipal += principalPaid;
+      }
     }
     
     // Annual property tax - propertyTaxRate is per $1000 of value
@@ -66,7 +71,8 @@ function calculateAnnualCosts(year, loanAmount, mortgageRate, mortgageYears,
         annualPrincipal,
         annualMortgage,
         annualPropertyTax,
-        annualHoa
+        annualHoa,
+        mortgageActive
     };
 }
 
@@ -142,7 +148,10 @@ function calculateHousingCosts(params) {
         let equityLoanInterest = 0;
         let equityLoanPrincipal = 0;
         
-        if (useEquityLoan) {
+        // Check if equity loan is still active
+        const equityLoanActive = useEquityLoan && year <= mortgageYears;
+
+        if (equityLoanActive) {
             for (let paymentNumber = (year - 1) * 12 + 1; paymentNumber <= year * 12; paymentNumber++) {
                 const { interest, principalPaid } = calculateMonthlyInterestAndPrincipal(
                     equityLoanAmount, equityLoanRate, mortgageYears, paymentNumber
@@ -153,10 +162,16 @@ function calculateHousingCosts(params) {
             
             remainingEquityLoanPrincipal -= equityLoanPrincipal;
             totalEquityLoanPaid += annualEquityLoanPayment;
+        } else if (useEquityLoan) {
+          // If we're past the loan term, set the remaining balance to 0
+          remainingEquityLoanPrincipal = 0;
         }
         
         // Update remaining principal after paying principal portion this year
         remainingPrincipal -= annualCosts.annualPrincipal;
+        if (!annualCosts.mortgageActive) {
+          remainingPrincipal = 0; // Ensure zero balance after mortgage term
+        }
         totalMortgagePaid += annualCosts.annualMortgage;
         
         // Calculate tax savings from interest and property tax
@@ -168,7 +183,7 @@ function calculateHousingCosts(params) {
         const netCondoCost = annualCosts.annualMortgage + 
             annualCosts.annualPropertyTax + 
             annualCosts.annualHoa + 
-            (useEquityLoan ? annualEquityLoanPayment : 0) - 
+            (equityLoanActive ? annualEquityLoanPayment : 0) - 
             annualTaxSavings;
         
         // Property value and equity
@@ -180,7 +195,7 @@ function calculateHousingCosts(params) {
             year,
             apartmentCost: annualApartment,
             mortgagePayment: annualCosts.annualMortgage,
-            equityLoanPayment: useEquityLoan ? annualEquityLoanPayment : 0,
+            equityLoanPayment: equityLoanActive ? annualEquityLoanPayment : 0,
             propertyTax: annualCosts.annualPropertyTax,
             hoa: annualCosts.annualHoa,
             taxSavings: annualTaxSavings,
