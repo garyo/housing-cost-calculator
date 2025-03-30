@@ -129,15 +129,25 @@
             </div>
             
             <div id="chart-tab" class="tab-content">
-                <h2>Cumulative Cost Comparison</h2>
-                <p>This chart shows the cumulative cost of renting vs. buying over time, assuming you sell the property in that year:</p>
-                <div id="chart-container" class="chart-container"></div>
-                <div id="crossover-point"></div>
+              <h2>Cost Comparisons</h2>
+              <div class="charts-section">
+                <div>
+                  <h3>Cumulative Costs Over Time</h3>
+                  <p>This chart shows the total costs accumulated over time for both options. The condo cost is the net cost after sale, assuming the condo is sold in that year.</p>
+                  <div id="chart-container" class="chart-container"></div>
+                  <div id="crossover-point"></div>
+                </div>
+                <div>
+                  <h3>Annual Housing Expenses</h3>
+                  <p>This chart shows the year-by-year expenses for each housing option, assuming the condo is <i>not</i> sold:</p>
+                  <div id="annual-expenses-container" class="chart-container"></div>
+                </div>
+              </div>
             </div>
             <div id="about-tab" class="tab-content">
               <h2>About This Calculator</h2>
 
-              <p>This calculator performs a comprehensive financial analysis comparing the costs of renting versus buying a home over a specified time period.</p>
+              <p>This calculator performs a nominal financial analysis comparing the costs of renting versus buying a home over a specified time period. All future costs are in future dollars (not inflation-adjusted).</p>
 
               <h3>Key Calculations</h3>
 
@@ -148,7 +158,7 @@
               <p>This calculator provides three different ways to fund your down payment:</p>
               <ul>
                 <li><strong>Cash on Hand:</strong> Uses your existing cash savings with no additional cost.</li>
-                <li><strong>Selling Stocks:</strong> Incurs capital gains tax on the amount liquidated, representing the opportunity cost of selling investments.</li>
+                <li><strong>Selling Stocks:</strong> Incurs capital gains tax on the amount liquidated net of cost basis, representing the opportunity cost of selling investments. Enter the total stock gain since purchase in percent.</li>
                 <li><strong>Home Equity Loan:</strong> Finances the down payment with a separate loan, adding monthly payments but avoiding the upfront capital gains tax.</li>
               </ul>
               <p>Each option has different financial implications, and the calculator shows how these choices affect the economics of homeownership over time.</p>
@@ -186,7 +196,7 @@
               <ul>
                 <li>All tax rates remain constant throughout the analysis period</li>
                 <li>Property appreciation and rent increases occur at constant annual rates</li>
-                <li>All mortgage and equity loan interest is tax-deductible (you may want to consult a tax professional about your specific situation)</li>
+                <li>All mortgage interest is tax-deductible (consult a tax professional about your specific situation)</li>
                 <li>No major repairs or renovations are included in the ownership costs</li>
                 <li>No transaction costs other than realtor fees and capital gains tax are included in the sale</li>
               </ul>

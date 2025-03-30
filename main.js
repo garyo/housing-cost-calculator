@@ -143,6 +143,7 @@ function calculateAndDisplay() {
         
         // Create chart
         createChart(comparisonData);
+        createAnnualExpensesChart(comparisonData, results.yearlyData);
         
     } catch (error) {
         console.error('Calculation error:', error);

@@ -102,7 +102,7 @@ function createCrossoverTable(data, containerId) {
     
     const crossoverInfo = document.createElement('p');
     if (crossoverPoint) {
-        crossoverInfo.textContent = `The crossover point occurs around year ${crossoverPoint} to ${crossoverPoint + 1}.`;
+        crossoverInfo.textContent = `The crossover point occurs between years ${crossoverPoint} and ${crossoverPoint + 1}.`;
     } else if (data[0].apartmentCost < data[0].condoCost) {
         if (data[data.length - 1].apartmentCost < data[data.length - 1].condoCost) {
             crossoverInfo.textContent = `Renting remains cheaper than buying throughout the ${data.length}-year period.`;
@@ -113,6 +113,71 @@ function createCrossoverTable(data, containerId) {
     
     document.getElementById('crossover-point').innerHTML = '';
     document.getElementById('crossover-point').appendChild(crossoverInfo);
+}
+
+function createAnnualExpensesChart(data, yearlyData) {
+    const container = document.getElementById('annual-expenses-container');
+
+    // Clear the container
+    container.innerHTML = '';
+
+    // Create a canvas element
+    const canvas = document.createElement('canvas');
+    container.appendChild(canvas);
+
+    // Get the years (using the data from calculateHousingCosts)
+    const years = yearlyData.map(d => d.year);
+
+    // Get annual costs directly from the yearlyData
+    const apartmentExpenses = yearlyData.map(d => d.apartmentCost / 1000);
+    const condoExpenses = yearlyData.map(d => d.netCondoCost / 1000);
+
+    // Create the chart
+    const annualExpensesChart = new Chart(canvas, {
+        // Chart configuration remains the same
+        type: 'bar',
+        data: {
+            labels: years,
+            datasets: [
+                {
+                    label: 'Apartment Annual Cost',
+                    data: apartmentExpenses,
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'rgb(75, 192, 192)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Condo Annual Cost',
+                    data: condoExpenses,
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              duration: 0 // disable animations
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Years'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Cost (Thousands)'
+                    }
+                }
+            },
+        }
+    });
+    return annualExpensesChart;
 }
 
 let myChart = null;
@@ -153,13 +218,14 @@ function createChart(data) {
                     borderWidth: 2
                 },
                 {
-                    label: 'Condo (Net Cost)',
+                    label: 'Condo (Net Cost after sale in year N)',
                     data: condoCosts,
                     borderColor: 'rgb(255, 99, 132)',
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     tension: 0.1,
                     borderWidth: 2
                 }
+
             ]
         },
         options: {
@@ -189,9 +255,16 @@ function createChart(data) {
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ': $' + context.raw + 'k';
-                        }
+                      label: function(context) {
+                        const formattedValue = new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD',
+                          maximumFractionDigits: 0
+                        }).format(context.raw * 1000);
+
+                        return context.dataset.label + ': ' + formattedValue;
+
+                      }
                     }
                 }
             }
