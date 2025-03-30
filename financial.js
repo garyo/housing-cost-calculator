@@ -115,7 +115,8 @@ function calculateHousingCosts(params) {
         appreciationRate,
         rentIncreaseRate,
         realtorFeePct,
-        capitalGainsRate
+        capitalGainsRate,
+        stockGainPct
     } = params;
 
     // Results arrays
@@ -130,7 +131,8 @@ function calculateHousingCosts(params) {
     const useStocks = downPaymentSource === 'stocks';
 
     // Capital gains tax only applies when selling stocks
-    const capGainsTaxOnDownPayment = useStocks ? downPayment * (capitalGainsRate * 0.01) : 0;
+    const stockGainAmount = useStocks ? downPayment * (stockGainPct / 100) : 0;
+    const capGainsTaxOnDownPayment = useStocks ? stockGainAmount * (capitalGainsRate * 0.01) : 0;
 
     // Equity loan only when using that option
     const equityLoanAmount = useEquityLoan ? downPayment : 0;

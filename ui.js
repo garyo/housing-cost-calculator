@@ -165,6 +165,9 @@ function createChart(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+              duration: 0 // disable animations
+            },
             scales: {
                 x: {
                     title: {
@@ -215,6 +218,8 @@ function getParameters() {
         const realtorFeePct = parseFloat(document.getElementById('realtor-fee').value);
         const capitalGainsRate = parseFloat(document.getElementById('capital-gains').value);
 
+        const stockGainPct = document.getElementById('stock-gain-container').style.display !== 'none' ? parseFloat(document.getElementById('stock-gain').value) : 0;
+
         // Validate inputs
         if (isNaN(analysisYears) || analysisYears <= 0) throw new Error('Analysis years must be a positive number');
         if (isNaN(apartmentRent) || apartmentRent < 0) throw new Error('Apartment rent must be a non-negative number');
@@ -248,7 +253,8 @@ function getParameters() {
             appreciationRate,
             rentIncreaseRate,
             realtorFeePct,
-            capitalGainsRate
+            capitalGainsRate,
+            stockGainPct
         };
     } catch (error) {
         document.getElementById('error-alert').textContent = error.message;

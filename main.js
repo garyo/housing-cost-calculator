@@ -324,3 +324,37 @@ window.addEventListener('popstate', function(event) {
         }, 100);
     }
 });
+
+function showElt(elt) {
+    elt.style.display = 'block';
+    void elt.offsetWidth; // force reflow
+    elt.classList.remove('hidden');
+}
+
+function hideElt(elt) {
+    elt.classList.add('hidden');
+    // After the transition completes, fully hide it
+    setTimeout(() => {
+      if (elt.classList.contains('hidden')) {
+        elt.style.display = 'none';
+      }
+    }, 300); // Same duration as the CSS transition
+}
+
+document.getElementById('down-payment-source').addEventListener('change', function() {
+  const stockGainContainer = document.getElementById('stock-gain-container');
+  const homeEqRateContainer = document.getElementById('home-eq-rate-container');
+  if (this.value === 'stocks') {
+    showElt(stockGainContainer);
+    hideElt(homeEqRateContainer);
+  } else if (this.value === 'loan') {
+    hideElt(stockGainContainer);
+    showElt(homeEqRateContainer);
+  } else {
+    hideElt(stockGainContainer);
+    hideElt(homeEqRateContainer);
+  }
+});
+
+// Initial trigger
+document.getElementById('down-payment-source').dispatchEvent(new Event('change'));

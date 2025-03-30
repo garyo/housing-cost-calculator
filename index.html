@@ -48,15 +48,17 @@
                 <option value="loan">Home Equity Loan</option>
               </select>
             </div>
-            <div class="form-row">
-              <div class="form-group half">
-                <label for="mortgage-rate">Mortgage Rate (%)</label>
-                <input type="number" id="mortgage-rate" value="6.5" min="0" step="0.1">
-              </div>
-              <div class="form-group half">
-                <label for="equity-loan-rate">Home Eq Loan Rate (%)</label>
-                <input type="number" id="equity-loan-rate" value="7.5" min="0" step="0.1">
-              </div>
+            <div class="form-group hidden" id="home-eq-rate-container">
+              <label for="equity-loan-rate">Home Eq Loan Rate (%)</label>
+              <input type="number" id="equity-loan-rate" value="7.5" min="0" step="0.1">
+            </div>
+            <div class="form-group hidden" id="stock-gain-container">
+              <label for="stock-gain">Stock Gain Since Purchase (%)</label>
+              <input type="number" id="stock-gain" value="20" min="0" max="200" step="1">
+            </div>
+            <div class="form-group">
+              <label for="mortgage-rate">Mortgage Rate (%)</label>
+              <input type="number" id="mortgage-rate" value="6.5" min="0" step="0.1">
             </div>
             <div class="form-group">
                 <label for="mortgage-years">Mortgage Term (years)</label>
