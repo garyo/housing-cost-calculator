@@ -1,0 +1,10 @@
+{
+  "name": "housing-cost-calculator",
+  "version": "1.0.0",
+  "description": "A calculator to compare costs of renting vs. buying housing",
+  "scripts": {
+    "test": "echo \"No tests configured\""
+  },
+  "author": "Gary Oberbrunner",
+  "license": "MIT"
+}
