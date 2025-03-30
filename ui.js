@@ -196,14 +196,13 @@ function createChart(data) {
     });
 }
 
-// Get the parameters from the form
 function getParameters() {
     try {
         const analysisYears = parseInt(document.getElementById('analysis-years').value);
         const apartmentRent = parseFloat(document.getElementById('apartment-rent').value);
         const condoPrice = parseFloat(document.getElementById('condo-price').value);
         const downPaymentPct = parseFloat(document.getElementById('down-payment').value);
-        const useEquityLoan = document.getElementById('use-equity-loan').value === 'true';
+        const downPaymentSource = document.getElementById('down-payment-source').value;
         const equityLoanRate = parseFloat(document.getElementById('equity-loan-rate').value);
         const mortgageRate = parseFloat(document.getElementById('mortgage-rate').value);
         const mortgageYears = parseInt(document.getElementById('mortgage-years').value);
@@ -215,7 +214,7 @@ function getParameters() {
         const rentIncreaseRate = parseFloat(document.getElementById('rent-increase').value);
         const realtorFeePct = parseFloat(document.getElementById('realtor-fee').value);
         const capitalGainsRate = parseFloat(document.getElementById('capital-gains').value);
-        
+
         // Validate inputs
         if (isNaN(analysisYears) || analysisYears <= 0) throw new Error('Analysis years must be a positive number');
         if (isNaN(apartmentRent) || apartmentRent < 0) throw new Error('Apartment rent must be a non-negative number');
@@ -232,13 +231,13 @@ function getParameters() {
         if (isNaN(rentIncreaseRate) || rentIncreaseRate < 0) throw new Error('Rent increase rate must be a non-negative number');
         if (isNaN(realtorFeePct) || realtorFeePct < 0 || realtorFeePct > 100) throw new Error('Realtor fee must be between 0 and 100%');
         if (isNaN(capitalGainsRate) || capitalGainsRate < 0 || capitalGainsRate > 100) throw new Error('Capital gains rate must be between 0 and 100%');
-        
+
         return {
             analysisYears,
             apartmentRent,
             condoPrice,
             downPaymentPct,
-            useEquityLoan,
+            downPaymentSource,
             equityLoanRate,
             mortgageRate,
             mortgageYears,

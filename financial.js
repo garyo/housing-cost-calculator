@@ -76,7 +76,7 @@ function calculateHousingCosts(params) {
         apartmentRent,
         condoPrice,
         downPaymentPct,
-        useEquityLoan,
+        downPaymentSource, // Updated parameter name
         equityLoanRate,
         mortgageRate,
         mortgageYears,
@@ -89,22 +89,32 @@ function calculateHousingCosts(params) {
         realtorFeePct,
         capitalGainsRate
     } = params;
-    
+
     // Results arrays
     const yearlyData = [];
-    
+
     // Compute basic initial values
     const downPayment = condoPrice * (downPaymentPct * 0.01);
-    const capGainsTaxOnDownPayment = useEquityLoan ? 0 : downPayment * (capitalGainsRate * 0.01);
+
+    // Calculate costs based on down payment source
+    const useEquityLoan = downPaymentSource === 'loan';
+    const useCash = downPaymentSource === 'cash';
+    const useStocks = downPaymentSource === 'stocks';
+
+    // Capital gains tax only applies when selling stocks
+    const capGainsTaxOnDownPayment = useStocks ? downPayment * (capitalGainsRate * 0.01) : 0;
+
+    // Equity loan only when using that option
     const equityLoanAmount = useEquityLoan ? downPayment : 0;
-    const equityLoanMonthlyPayment = useEquityLoan ? 
+    const equityLoanMonthlyPayment = useEquityLoan ?
         calculateMortgagePayment(equityLoanAmount, equityLoanRate, mortgageYears) : 0;
     const annualEquityLoanPayment = equityLoanMonthlyPayment * 12;
+
     const loanAmount = condoPrice - downPayment;
-    
+
     // Combined marginal tax rate
     const combinedTaxRate = (federalTaxRate + stateTaxRate) / 100;
-    
+
     // Track mortgage balance
     let remainingPrincipal = loanAmount;
     let remainingEquityLoanPrincipal = equityLoanAmount;
@@ -191,8 +201,12 @@ function calculateHousingCosts(params) {
     
     // Calculate total costs over entire period
     const totalApartmentCost = yearlyData.reduce((sum, data) => sum + data.apartmentCost, 0);
-    const totalCondoCost = yearlyData.reduce((sum, data) => sum + data.netCondoCost, 0) - 
-                       netSaleProceeds + (useEquityLoan ? 0 : downPayment + capGainsTaxOnDownPayment);
+
+    // When calculating total cost, only add down payment when using cash or stocks
+    const totalCondoCost = yearlyData.reduce((sum, data) => sum + data.netCondoCost, 0) -
+                           netSaleProceeds +
+                           (useEquityLoan ? 0 : downPayment) + // Add down payment for cash and stocks
+                           capGainsTaxOnDownPayment; // Capital gains tax only for stocks
     
     // Summary data
     const summaryData = [
@@ -212,9 +226,15 @@ function calculateHousingCosts(params) {
         { assumption: 'Condo Price', value: formatCurrency(condoPrice) },
         { assumption: `Down Payment (${downPaymentPct}%)`, value: formatCurrency(downPayment) },
         { assumption: 'Funding Method', value: useEquityLoan ? 'Home Equity Loan' : 'Sell Stocks' },
-        useEquityLoan 
-            ? { assumption: 'Equity Loan Rate', value: `${equityLoanRate}%` }
-            : { assumption: 'Cap Gains Tax on Down Payment', value: formatCurrency(capGainsTaxOnDownPayment) },
+        { assumption: 'Down Payment Source', value: downPaymentSource === 'cash' 
+                                                  ? 'Cash on Hand'
+                                                  : (downPaymentSource === 'stocks'
+                                                    ? 'Sell Stocks'
+                                                    : 'Home Equity Loan') },
+        // Only show capital gains tax for stocks
+        ...(useStocks ? [{ assumption: 'Cap Gains Tax on Down Payment', value: formatCurrency(capGainsTaxOnDownPayment) }] : []),
+        // Only show equity loan rate for loan option
+        ...(useEquityLoan ? [{ assumption: 'Equity Loan Rate', value: `${equityLoanRate}%` }] : []),
         { assumption: 'Mortgage Rate', value: `${mortgageRate}%` },
         { assumption: 'Mortgage Term', value: `${mortgageYears} years` },
         { assumption: 'Property Tax Rate', value: `${propertyTaxRate} per $1000/yr` },
