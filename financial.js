@@ -192,7 +192,7 @@ function calculateHousingCosts(params) {
     // Calculate total costs over entire period
     const totalApartmentCost = yearlyData.reduce((sum, data) => sum + data.apartmentCost, 0);
     const totalCondoCost = yearlyData.reduce((sum, data) => sum + data.netCondoCost, 0) - 
-                           netSaleProceeds + downPayment + capGainsTaxOnDownPayment;
+                       netSaleProceeds + (useEquityLoan ? 0 : downPayment + capGainsTaxOnDownPayment);
     
     // Summary data
     const summaryData = [

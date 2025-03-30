@@ -1,4 +1,4 @@
-// Initialize tabs
+// Initialize tabs and set up auto-calculation
 document.addEventListener('DOMContentLoaded', () => {
     // Set up tab navigation
     document.querySelectorAll('.tab').forEach(tab => {
@@ -6,19 +6,35 @@ document.addEventListener('DOMContentLoaded', () => {
             // Remove active class from all tabs
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            
+
             // Add active class to clicked tab
             this.classList.add('active');
             document.getElementById(`${this.dataset.tab}-tab`).classList.add('active');
         });
     });
-    
-    // Set up calculate button
+
+  // Set up all input elements to trigger calculation on change (no more often than every 100ms)
+    const inputElements = document.querySelectorAll('input, select');
+    inputElements.forEach(input => {
+        input.addEventListener('input', debounce(calculateAndDisplay, 100));
+    });
+
+    // Set up calculate button (keep it for accessibility, but it's redundant now)
     document.getElementById('calculate-btn').addEventListener('click', calculateAndDisplay);
-    
+
     // Initial calculation
     calculateAndDisplay();
 });
+
+// Prevent too many calculations while dragging sliders
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
 
 // Calculate and update the UI
 function calculateAndDisplay() {
