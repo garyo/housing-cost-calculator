@@ -104,6 +104,7 @@
                 <div class="tab" data-tab="yearly">Yearly Breakdown</div>
                 <div class="tab" data-tab="assumptions">Assumptions</div>
                 <div class="tab" data-tab="chart">Chart</div>
+                <div class="tab" data-tab="about">About</div>
             </div>
             
             <div id="summary-tab" class="tab-content active">
@@ -128,6 +129,57 @@
                 <div id="chart-container" class="chart-container"></div>
                 <div id="crossover-point"></div>
             </div>
+            <div id="about-tab" class="tab-content">
+              <h2>About This Calculator</h2>
+
+              <p>This calculator performs a comprehensive financial analysis comparing the costs of renting versus buying a home over a specified time period.</p>
+
+              <h3>Key Calculations</h3>
+
+              <h4>Mortgage Calculations</h4>
+              <p>Monthly mortgage payments are calculated using the standard amortization formula. For each payment, we determine how much goes to interest versus principal reduction, which impacts equity building and tax benefits.</p>
+
+              <h4>Home Equity Loan Option</h4>
+              <p>You can choose between selling stocks (incurring capital gains tax) or using a home equity loan to fund your down payment. This option demonstrates how different methods of funding a down payment affect the long-term economics of homeownership.</p>
+
+              <h4>Annual Ownership Costs</h4>
+              <p>Beyond mortgage payments, we account for property taxes (calculated as a rate per $1,000 of property value) and HOA fees (calculated as a percentage of property value per month). These expenses typically increase as the property appreciates.</p>
+
+              <h4>Tax Benefits</h4>
+              <p>The calculator includes tax savings from deducting mortgage interest, equity loan interest, and property taxes based on your combined federal and state marginal tax rates.</p>
+
+              <h4>Property Appreciation</h4>
+              <p>We model how property value changes over time using a fixed annual appreciation rate. This impacts your equity growth and the final sale price of the property.</p>
+
+              <h4>Rental Costs</h4>
+              <p>Rental costs start at your specified monthly rent and increase annually at your chosen rate to reflect typical market conditions.</p>
+
+              <h4>Sale Proceeds Calculation</h4>
+              <p>When selling the property, we calculate proceeds by taking the appreciated value, then subtracting:
+                <ul>
+                  <li>Realtor fees (as a percentage of sale price)</li>
+                  <li>Capital gains tax on any profit (sale price minus purchase price)</li>
+                  <li>Remaining mortgage balance</li>
+                  <li>Remaining equity loan balance (if applicable)</li>
+                </ul>
+              </p>
+
+              <h4>Total Cost Comparison</h4>
+              <p>The total cost of ownership includes all annual costs minus the net proceeds from selling. For renting, it's simply the cumulative rent paid. The crossover point occurs when one option becomes more economical than the other.</p>
+
+              <h3>Methodology Notes</h3>
+              <p>This calculator makes several simplifying assumptions:</p>
+              <ul>
+                <li>All tax rates remain constant throughout the analysis period</li>
+                <li>Property appreciation and rent increases occur at constant annual rates</li>
+                <li>All mortgage and equity loan interest is tax-deductible (you may want to consult a tax professional about your specific situation)</li>
+                <li>No major repairs or renovations are included in the ownership costs</li>
+                <li>No transaction costs other than realtor fees and capital gains tax are included in the sale</li>
+              </ul>
+
+              <p>The analysis is intended to provide a framework for decision-making rather than a precise prediction of future costs.</p>
+            </div>
+
         </div>
     </div>
 

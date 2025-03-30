@@ -17,6 +17,12 @@ body {
 
 h1, h2, h3 {
     color: var(--primary-color);
+    margin-block-end: 5px;
+}
+
+p {
+    margin-block-start: 5px;
+    margin-block-end: 5px;
 }
 
 .container {
