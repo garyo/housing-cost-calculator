@@ -225,7 +225,6 @@ function calculateHousingCosts(params) {
     const assumptionsData = [
         { assumption: 'Condo Price', value: formatCurrency(condoPrice) },
         { assumption: `Down Payment (${downPaymentPct}%)`, value: formatCurrency(downPayment) },
-        { assumption: 'Funding Method', value: useEquityLoan ? 'Home Equity Loan' : 'Sell Stocks' },
         { assumption: 'Down Payment Source', value: downPaymentSource === 'cash' 
                                                   ? 'Cash on Hand'
                                                   : (downPaymentSource === 'stocks'
