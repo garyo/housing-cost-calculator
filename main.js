@@ -135,7 +135,7 @@ function calculateAndDisplay() {
         );
         
         // Generate comparison data for multiple years (for chart and crossover analysis)
-        const maxYears = Math.max(10, params.analysisYears);
+        const maxYears = params.analysisYears;
         const comparisonData = generateCostComparison(maxYears, params);
         
         // Create crossover table

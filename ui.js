@@ -49,7 +49,7 @@ function createCrossoverTable(data, containerId) {
     
     // Create header row
     const headerRow = document.createElement('tr');
-    ['Year', 'Apartment Cost', 'Condo Cost'].forEach(header => {
+    ['Year', 'Apartment Cost', 'Net Condo Cost'].forEach(header => {
         const th = document.createElement('th');
         th.textContent = header;
         headerRow.appendChild(th);
