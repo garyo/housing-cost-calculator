@@ -150,15 +150,36 @@ function calculateAndDisplay() {
     }
 }
 
+// Save current parameters to URL query params
 function saveParamsToURL() {
     const params = getParameters();
     const queryParams = new URLSearchParams();
 
-    // Add all parameters to the URL, converting camelCase to kebab-case
+    // Create a mapping between parameter names and element IDs
+    const paramToElementMap = {
+        'analysisYears': 'analysis-years',
+        'apartmentRent': 'apartment-rent',
+        'condoPrice': 'condo-price',
+        'downPaymentPct': 'down-payment',
+        'downPaymentSource': 'down-payment-source',
+        'stockGainPct': 'stock-gain',
+        'equityLoanRate': 'equity-loan-rate',
+        'mortgageRate': 'mortgage-rate',
+        'mortgageYears': 'mortgage-years',
+        'propertyTaxRate': 'property-tax',
+        'hoaRate': 'hoa-rate',
+        'federalTaxRate': 'federal-tax',
+        'stateTaxRate': 'state-tax',
+        'appreciationRate': 'appreciation',
+        'rentIncreaseRate': 'rent-increase',
+        'realtorFeePct': 'realtor-fee',
+        'capitalGainsRate': 'capital-gains'
+    };
+
+    // Add all parameters to the URL using element IDs
     Object.keys(params).forEach(key => {
-        // Convert camelCase to kebab-case: analysisYears → analysis-years
-        const kebabKey = key.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-        queryParams.set(kebabKey, params[key]);
+        const elementId = paramToElementMap[key] || key;
+        queryParams.set(elementId, params[key]);
     });
 
     // Update the URL without reloading the page
@@ -169,7 +190,6 @@ function saveParamsToURL() {
     alert('Current scenario saved to URL. You can bookmark this page to save this scenario.');
 }
 
-// Function to load parameters from URL
 function loadParamsFromURL() {
     const queryParams = new URLSearchParams(window.location.search);
 
@@ -180,26 +200,30 @@ function loadParamsFromURL() {
 
     // For each form input, try to load from URL
     const inputElements = document.querySelectorAll('input, select');
+    let paramsLoaded = 0;
 
     inputElements.forEach(input => {
+        // Skip elements without an ID
+        if (!input.id) return;
+
         const paramValue = queryParams.get(input.id);
 
         if (paramValue !== null) {
             // Set the input value
             if (input.type === 'checkbox') {
                 input.checked = paramValue === 'true';
-            } else if (input.type === 'select-one') {
-                input.value = paramValue;
             } else {
                 input.value = paramValue;
             }
 
             // Trigger the input event to update any dependent UI
             input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            paramsLoaded++;
         }
     });
 
-    return true; // Successfully loaded parameters
+    return paramsLoaded > 0; // Successfully loaded parameters if at least one was set
 }
 
 function resetCalculator() {
