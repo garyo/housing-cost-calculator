@@ -45,12 +45,16 @@
               <select id="down-payment-source">
                 <option value="cash">Cash on Hand</option>
                 <option value="stocks">Sell Stocks (Capital Gains Tax)</option>
-                <option value="loan">Home Equity Loan</option>
+                <option value="loan">Loan</option>
               </select>
             </div>
             <div class="form-group hidden" id="home-eq-rate-container">
-              <label for="equity-loan-rate">Home Eq Loan Rate (%)</label>
+              <label for="equity-loan-rate">Down-Payment Loan Rate (%)</label>
               <input type="number" id="equity-loan-rate" value="7.5" min="0" step="0.1">
+            </div>
+            <div class="form-group hidden" id="equity-loan-term-container">
+              <label for="equity-loan-term">Down-Payment Loan Term (years)</label>
+              <input type="number" id="equity-loan-term" value="10" min="1" max="30" step="1">
             </div>
             <div class="form-group hidden" id="stock-gain-container">
               <label for="stock-gain">Stock Gain Since Purchase (%)</label>
@@ -159,7 +163,7 @@
               <ul>
                 <li><strong>Cash on Hand:</strong> Uses your existing cash savings with no additional cost.</li>
                 <li><strong>Selling Stocks:</strong> Incurs capital gains tax on the amount liquidated net of cost basis, representing the opportunity cost of selling investments. Enter the total stock gain since purchase in percent.</li>
-                <li><strong>Home Equity Loan:</strong> Finances the down payment with a separate loan, adding monthly payments but avoiding the upfront capital gains tax.</li>
+                <li><strong>Loan:</strong> Finances the down payment with a separate loan, adding monthly payments but avoiding the upfront capital gains tax.</li>
               </ul>
               <p>Each option has different financial implications, and the calculator shows how these choices affect the economics of homeownership over time.</p>
 
@@ -167,7 +171,7 @@
               <p>Beyond mortgage payments, we account for property taxes (calculated as a rate per $1,000 of property value) and HOA fees (calculated as a percentage of property value per month). These expenses typically increase as the property appreciates.</p>
 
               <h4>Tax Benefits</h4>
-              <p>The calculator includes tax savings from deducting mortgage interest, equity loan interest, and property taxes based on your combined federal and state marginal tax rates.</p>
+              <p>The calculator includes tax savings from deducting mortgage interest, loan interest, and property taxes based on your combined federal and state marginal tax rates.</p>
               <p>Note that while mortgage interest and property taxes are typically deductible, 
                 interest on a home equity loan used for a down payment on a different property
                 is not tax-deductible under current US tax laws.</p>
@@ -184,7 +188,7 @@
                   <li>Realtor fees (as a percentage of sale price)</li>
                   <li>Capital gains tax on any profit (sale price minus purchase price)</li>
                   <li>Remaining mortgage balance</li>
-                  <li>Remaining equity loan balance (if applicable)</li>
+                  <li>Remaining loan balance (if applicable)</li>
                 </ul>
               </p>
 

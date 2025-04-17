@@ -280,6 +280,7 @@ function getParameters() {
         const downPaymentPct = parseFloat(document.getElementById('down-payment').value);
         const downPaymentSource = document.getElementById('down-payment-source').value;
         const equityLoanRate = parseFloat(document.getElementById('equity-loan-rate').value);
+        const equityLoanYears = parseInt(document.getElementById('equity-loan-term').value);
         const mortgageRate = parseFloat(document.getElementById('mortgage-rate').value);
         const mortgageYears = parseInt(document.getElementById('mortgage-years').value);
         const propertyTaxRate = parseFloat(document.getElementById('property-tax').value);
@@ -298,9 +299,10 @@ function getParameters() {
         if (isNaN(apartmentRent) || apartmentRent < 0) throw new Error('Apartment rent must be a non-negative number');
         if (isNaN(condoPrice) || condoPrice <= 0) throw new Error('Condo price must be a positive number');
         if (isNaN(downPaymentPct) || downPaymentPct < 0 || downPaymentPct > 100) throw new Error('Down payment must be between 0 and 100%');
-        if (isNaN(equityLoanRate) || equityLoanRate < 0) throw new Error('Equity loan rate must be a non-negative number');
+        if (isNaN(equityLoanRate) || equityLoanRate < 0) throw new Error('Loan rate must be a non-negative number');
         if (isNaN(mortgageRate) || mortgageRate < 0) throw new Error('Mortgage rate must be a non-negative number');
         if (isNaN(mortgageYears) || mortgageYears <= 0) throw new Error('Mortgage term must be a positive number');
+        if (downPaymentSource === 'loan' && (isNaN(equityLoanYears) || equityLoanYears <= 0)) throw new Error('Loan term must be a positive number');
         if (isNaN(propertyTaxRate) || propertyTaxRate < 0) throw new Error('Property tax rate must be a non-negative number');
         if (isNaN(hoaRate) || hoaRate < 0) throw new Error('HOA rate must be a non-negative number');
         if (isNaN(federalTaxRate) || federalTaxRate < 0 || federalTaxRate > 100) throw new Error('Federal tax rate must be between 0 and 100%');
@@ -317,6 +319,7 @@ function getParameters() {
             downPaymentPct,
             downPaymentSource,
             equityLoanRate,
+            equityLoanYears,
             mortgageRate,
             mortgageYears,
             propertyTaxRate,

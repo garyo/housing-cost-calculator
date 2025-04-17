@@ -106,6 +106,7 @@ function calculateHousingCosts(params) {
         downPaymentPct,
         downPaymentSource,
         equityLoanRate,
+        equityLoanYears,
         mortgageRate,
         mortgageYears,
         propertyTaxRate,
@@ -134,7 +135,7 @@ function calculateHousingCosts(params) {
     const stockGainAmount = useStocks ? downPayment * (stockGainPct / 100) : 0;
     const capGainsTaxOnDownPayment = useStocks ? stockGainAmount * (capitalGainsRate * 0.01) : 0;
 
-    // Equity loan only when using that option
+    // Loan, only when using that option
     const equityLoanAmount = useEquityLoan ? downPayment : 0;
     const loanAmount = condoPrice - downPayment;
 
@@ -172,7 +173,7 @@ function calculateHousingCosts(params) {
                 year,
                 equityLoanAmount,
                 equityLoanRate,
-                mortgageYears
+                equityLoanYears
             );
 
             if (equityLoanPayments.loanActive) {
@@ -192,7 +193,7 @@ function calculateHousingCosts(params) {
         totalMortgagePaid += annualCosts.annualMortgage;
 
         // Calculate tax savings from interest and property tax
-        // Note: Equity loan interest for down payment is not tax deductible
+        // Note: loan interest for down payment is not tax deductible
         const deductibleAmount = annualCosts.annualInterest + annualCosts.annualPropertyTax;
         const annualTaxSavings = deductibleAmount * combinedTaxRate;
 
@@ -246,7 +247,7 @@ function calculateHousingCosts(params) {
         { description: 'Realtor Fees', amount: realtorFees },
         { description: 'Capital Gains Tax', amount: capitalGainsTax },
         { description: 'Remaining Mortgage', amount: remainingPrincipal },
-        { description: 'Remaining Equity Loan', amount: remainingEquityLoanPrincipal },
+        { description: 'Remaining Loan', amount: remainingEquityLoanPrincipal },
         { description: 'Net Sale Proceeds', amount: netSaleProceeds },
         { description: 'Total Condo Costs', amount: totalCondoCost },
         { description: 'Total Apartment Costs', amount: totalApartmentCost },
@@ -261,11 +262,14 @@ function calculateHousingCosts(params) {
                                                   ? 'Cash on Hand'
                                                   : (downPaymentSource === 'stocks'
                                                     ? 'Sell Stocks (capital gains)'
-                                                    : 'Home Equity Loan (interest not tax-deductible)') },
+                                                    : 'Loan (interest not tax-deductible)') },
         // Only show capital gains tax for stocks
         ...(useStocks ? [{ assumption: 'Cap Gains Tax on Down Payment', value: formatCurrency(capGainsTaxOnDownPayment) }] : []),
-        // Only show equity loan rate for loan option
-        ...(useEquityLoan ? [{ assumption: 'Equity Loan Rate', value: `${equityLoanRate}%` }] : []),
+        // Only show equity loan rate and term for loan option
+        ...(useEquityLoan ? [
+            { assumption: 'Loan Rate', value: `${equityLoanRate}%` },
+            { assumption: 'Loan Term', value: `${equityLoanYears} years` }
+        ] : []),
         { assumption: 'Mortgage Rate', value: `${mortgageRate}%` },
         { assumption: 'Mortgage Term', value: `${mortgageYears} years` },
         { assumption: 'Property Tax Rate', value: `${propertyTaxRate} per $1000/yr` },

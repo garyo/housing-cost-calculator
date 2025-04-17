@@ -67,7 +67,7 @@ function calculateAndDisplay() {
             },
             params.downPaymentSource === 'loan' ? {
               field: 'equityLoanPayment',
-              header: 'Equity Loan Pmt',
+              header: 'Loan Pmt',
               format: (value) => formatCurrency(value)
             } : null,
             {
@@ -107,7 +107,7 @@ function calculateAndDisplay() {
             },
             params.downPaymentSource === 'loan' ? {
               field: 'remainingEquityLoan',
-              header: 'Remaining Equity Loan',
+              header: 'Remaining Loan',
               format: (value) => formatCurrency(value)
             } : null
           ].filter(Boolean),  // Filter out null columns
@@ -164,6 +164,7 @@ function saveParamsToURL() {
         'downPaymentSource': 'down-payment-source',
         'stockGainPct': 'stock-gain',
         'equityLoanRate': 'equity-loan-rate',
+        'equityLoanYears': 'equity-loan-term',
         'mortgageRate': 'mortgage-rate',
         'mortgageYears': 'mortgage-years',
         'propertyTaxRate': 'property-tax',
@@ -369,15 +370,19 @@ function hideElt(elt) {
 document.getElementById('down-payment-source').addEventListener('change', function() {
   const stockGainContainer = document.getElementById('stock-gain-container');
   const homeEqRateContainer = document.getElementById('home-eq-rate-container');
+  const homeEqTermContainer = document.getElementById('equity-loan-term-container');
   if (this.value === 'stocks') {
     showElt(stockGainContainer);
     hideElt(homeEqRateContainer);
+    hideElt(homeEqTermContainer);
   } else if (this.value === 'loan') {
     hideElt(stockGainContainer);
     showElt(homeEqRateContainer);
+    showElt(homeEqTermContainer);
   } else {
     hideElt(stockGainContainer);
     hideElt(homeEqRateContainer);
+    hideElt(homeEqTermContainer);
   }
 });
 
