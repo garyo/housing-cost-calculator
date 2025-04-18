@@ -122,7 +122,9 @@ function calculateHousingCosts(params) {
         rentIncreaseRate,
         realtorFeePct,
         capitalGainsRate,
-        stockGainPct
+        stockGainPct,
+        discountRate,
+        useTodaysDollars
     } = params;
 
     // Results arrays
@@ -307,18 +309,42 @@ function calculateHousingCosts(params) {
     };
 }
 
+/**
+ * Apply present value discount to a value based on year
+ * @param {number} value - The value to discount
+ * @param {number} year - The year of the value
+ * @param {number} discountRate - Annual discount rate in percent
+ * @returns {number} The present value of the amount
+ */
+function calculatePresentValue(value, year, discountRate) {
+    return value / Math.pow(1 + discountRate / 100, year);
+}
+
 function generateCostComparison(maxYears, params) {
     const comparisonData = [];
-
+    const useTodaysDollars = params.useTodaysDollars || false;
+    const discountRate = params.discountRate || 0;
+    
     for (let year = 1; year <= maxYears; year++) {
         const yearParams = { ...params, analysisYears: year };
         const { metrics } = calculateHousingCosts(yearParams);
-
+        
+        let apartmentCost = metrics.totalApartmentCost;
+        let condoCost = metrics.totalCondoCost;
+        let propertyValue = metrics.finalPropertyValue;
+        
+        // Apply present value discount if enabled
+        if (useTodaysDollars && discountRate > 0) {
+            apartmentCost = calculatePresentValue(apartmentCost, year, discountRate);
+            condoCost = calculatePresentValue(condoCost, year, discountRate);
+            propertyValue = calculatePresentValue(propertyValue, year, discountRate);
+        }
+        
         comparisonData.push({
             year,
-            apartmentCost: metrics.totalApartmentCost,
-            condoCost: metrics.totalCondoCost,
-            finalPropertyValue: metrics.finalPropertyValue
+            apartmentCost,
+            condoCost,
+            finalPropertyValue: propertyValue
         });
     }
 

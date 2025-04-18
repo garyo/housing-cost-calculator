@@ -7,6 +7,10 @@ function createTable(data, columns, containerId) {
     const thead = document.createElement('thead');
     const tbody = document.createElement('tbody');
     
+    // Check if today's dollars is enabled
+    const useTodaysDollars = document.getElementById('today-dollars-toggle').checked;
+    const discountRate = parseFloat(document.getElementById('discount-rate').value) || 0;
+    
     // Create header row
     const headerRow = document.createElement('tr');
     columns.forEach(column => {
@@ -24,7 +28,16 @@ function createTable(data, columns, containerId) {
             
             // Check for special formatting
             if (column.format) {
-                td.innerHTML = column.format(row[column.field], row);
+                // If we're using today's dollars and this is a monetary value, apply discounting
+                let value = row[column.field];
+                if (useTodaysDollars && discountRate > 0 && 
+                    containerId === 'yearly-table-container' && 
+                    typeof value === 'number' && 
+                    column.field !== 'year') {
+                    // Apply discount based on the year
+                    value = calculatePresentValue(value, row.year, discountRate);
+                }
+                td.innerHTML = column.format(value, row);
             } else {
                 td.textContent = row[column.field];
             }
@@ -47,9 +60,14 @@ function createCrossoverTable(data, containerId) {
     const thead = document.createElement('thead');
     const tbody = document.createElement('tbody');
     
+    // Check if today's dollars is enabled
+    const useTodaysDollars = document.getElementById('today-dollars-toggle').checked;
+    
     // Create header row
     const headerRow = document.createElement('tr');
-    ['Year', 'Apartment Cost', 'Net Condo Cost'].forEach(header => {
+    const headers = ['Year', 'Apartment Cost', 'Net Condo Cost'];
+    
+    headers.forEach(header => {
         const th = document.createElement('th');
         th.textContent = header;
         headerRow.appendChild(th);
@@ -128,9 +146,24 @@ function createAnnualExpensesChart(data, yearlyData) {
     // Get the years (using the data from calculateHousingCosts)
     const years = yearlyData.map(d => d.year);
 
+    // Check if today's dollars is enabled
+    const useTodaysDollars = document.getElementById('today-dollars-toggle').checked;
+    const discountRate = parseFloat(document.getElementById('discount-rate').value) || 0;
+    
     // Get annual costs directly from the yearlyData
-    const apartmentExpenses = yearlyData.map(d => d.apartmentCost / 1000);
-    const condoExpenses = yearlyData.map(d => d.netCondoCost / 1000);
+    let apartmentExpenses, condoExpenses;
+    
+    if (useTodaysDollars && discountRate > 0) {
+        // Apply present value discount
+        apartmentExpenses = yearlyData.map((d, i) => 
+            calculatePresentValue(d.apartmentCost, d.year, discountRate) / 1000);
+        condoExpenses = yearlyData.map((d, i) => 
+            calculatePresentValue(d.netCondoCost, d.year, discountRate) / 1000);
+    } else {
+        // Use nominal values
+        apartmentExpenses = yearlyData.map(d => d.apartmentCost / 1000);
+        condoExpenses = yearlyData.map(d => d.netCondoCost / 1000);
+    }
 
     // Create the chart
     const annualExpensesChart = new Chart(canvas, {
@@ -175,6 +208,12 @@ function createAnnualExpensesChart(data, yearlyData) {
                     }
                 }
             },
+            plugins: {
+                title: {
+                    display: true,
+                    text: useTodaysDollars ? 'Annual Housing Expenses (Today\'s Dollars)' : 'Annual Housing Expenses'
+                }
+            }
         }
     });
     return annualExpensesChart;
@@ -203,6 +242,9 @@ function createChart(data) {
     const years = data.map(d => d.year);
     const apartmentCosts = data.map(d => d.apartmentCost / 1000);
     const condoCosts = data.map(d => d.condoCost / 1000);
+    
+    // Check if today's dollars is enabled
+    const useTodaysDollars = document.getElementById('today-dollars-toggle').checked;
     
     myChart = new Chart(canvas, {
         type: 'line',
@@ -251,7 +293,7 @@ function createChart(data) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Cumulative Housing Costs Over Time'
+                    text: useTodaysDollars ? 'Cumulative Housing Costs Over Time (Today\'s Dollars)' : 'Cumulative Housing Costs Over Time'
                 },
                 tooltip: {
                     callbacks: {
@@ -292,6 +334,8 @@ function getParameters() {
         const rentIncreaseRate = parseFloat(document.getElementById('rent-increase').value);
         const realtorFeePct = parseFloat(document.getElementById('realtor-fee').value);
         const capitalGainsRate = parseFloat(document.getElementById('capital-gains').value);
+        const discountRate = parseFloat(document.getElementById('discount-rate').value);
+        const useTodaysDollars = document.getElementById('today-dollars-toggle').checked;
 
         const stockGainPct = document.getElementById('stock-gain-container').style.display !== 'none' ? parseFloat(document.getElementById('stock-gain').value) : 0;
 
@@ -313,6 +357,7 @@ function getParameters() {
         if (isNaN(rentIncreaseRate) || rentIncreaseRate < 0) throw new Error('Rent increase rate must be a non-negative number');
         if (isNaN(realtorFeePct) || realtorFeePct < 0 || realtorFeePct > 100) throw new Error('Realtor fee must be between 0 and 100%');
         if (isNaN(capitalGainsRate) || capitalGainsRate < 0 || capitalGainsRate > 100) throw new Error('Capital gains rate must be between 0 and 100%');
+        if (isNaN(discountRate) || discountRate < 0 || discountRate > 20) throw new Error('Discount rate must be between 0 and 20%');
 
         return {
             analysisYears,
@@ -333,7 +378,9 @@ function getParameters() {
             rentIncreaseRate,
             realtorFeePct,
             capitalGainsRate,
-            stockGainPct
+            stockGainPct,
+            discountRate,
+            useTodaysDollars
         };
     } catch (error) {
         document.getElementById('error-alert').textContent = error.message;

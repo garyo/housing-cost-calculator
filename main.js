@@ -13,16 +13,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-  // Set up all input elements to trigger calculation on change (no more often than every 100ms)
+    // Set up all input elements to trigger calculation on change (no more often than every 100ms)
     const inputElements = document.querySelectorAll('input, select');
     inputElements.forEach(input => {
         input.addEventListener('input', debounce(calculateAndDisplay, 100));
+    });
+
+    // Set up today's dollars toggle
+    document.getElementById('today-dollars-toggle').addEventListener('change', function() {
+        updateTodaysDollarsIndicator(); // Update indicators immediately
+        calculateAndDisplay();
+    });
+    
+    // Also watch for changes to the discount rate
+    document.getElementById('discount-rate').addEventListener('input', function() {
+        if (document.getElementById('today-dollars-toggle').checked) {
+            updateTodaysDollarsIndicator();
+        }
     });
 
     // Set up calculate button (keep it for accessibility, but it's redundant now)
     document.getElementById('calculate-btn').addEventListener('click', calculateAndDisplay);
 
     // Initial calculation
+    updateTodaysDollarsIndicator();
     calculateAndDisplay();
 });
 
@@ -36,6 +50,28 @@ function debounce(func, wait) {
     };
 }
 
+// Add an indicator for today's dollars status to relevant headings
+function updateTodaysDollarsIndicator() {
+    const useTodaysDollars = document.getElementById('today-dollars-toggle').checked;
+    const discountRate = parseFloat(document.getElementById('discount-rate').value) || 0;
+    
+    // Only show indicators if today's dollars is enabled and discount rate is positive
+    if (useTodaysDollars && discountRate > 0) {
+        // Add indicator to any heading that needs it
+        const indicators = document.querySelectorAll('.today-dollars-indicator');
+        indicators.forEach(el => {
+            el.style.display = 'inline';
+            el.textContent = ` (Today's Dollars @ ${discountRate}%)`;
+        });
+    } else {
+        // Hide all indicators
+        const indicators = document.querySelectorAll('.today-dollars-indicator');
+        indicators.forEach(el => {
+            el.style.display = 'none';
+        });
+    }
+}
+
 // Calculate and update the UI
 function calculateAndDisplay() {
     try {
@@ -46,6 +82,9 @@ function calculateAndDisplay() {
         
         // Update the years display
         document.getElementById('analysis-years-display').textContent = params.analysisYears.toString();
+        
+        // Update today's dollars indicators
+        updateTodaysDollarsIndicator();
         
         // Calculate housing costs
         const results = calculateHousingCosts(params);
@@ -180,7 +219,9 @@ function saveParamsToURL() {
         'appreciationRate': 'appreciation',
         'rentIncreaseRate': 'rent-increase',
         'realtorFeePct': 'realtor-fee',
-        'capitalGainsRate': 'capital-gains'
+        'capitalGainsRate': 'capital-gains',
+        'discountRate': 'discount-rate',
+        'useTodaysDollars': 'today-dollars-toggle'
     };
 
     // Add all parameters to the URL using element IDs
