@@ -201,8 +201,23 @@ function calculateHousingCosts(params) {
         totalMortgagePaid += annualCosts.annualMortgage;
 
         // Calculate tax savings from interest and property tax
+        // Apply SALT and mortgage interest deduction limits
+        
+        // SALT deduction limit - $10,000 cap on state/local tax deductions
+        const saltDeductionLimit = 10000;
+        // Mortgage interest deduction limit - interest on up to $750,000 of acquisition debt
+        const mortgageInterestDeductionLimit = 750000;
+        
+        // Limit deductible property tax (part of SALT)
+        const deductiblePropertyTax = Math.min(annualCosts.annualPropertyTax, saltDeductionLimit);
+        
+        // Limit mortgage interest deduction based on original loan amount
+        const mortgageDeductionRatio = loanAmount <= mortgageInterestDeductionLimit ? 
+            1.0 : mortgageInterestDeductionLimit / loanAmount;
+        const deductibleMortgageInterest = annualCosts.annualInterest * mortgageDeductionRatio;
+        
         // Note: loan interest for down payment is not tax deductible
-        const deductibleAmount = annualCosts.annualInterest + annualCosts.annualPropertyTax;
+        const deductibleAmount = deductibleMortgageInterest + deductiblePropertyTax;
         const annualTaxSavings = deductibleAmount * combinedTaxRate;
 
         // Net condo cost for the year
@@ -288,6 +303,8 @@ function calculateHousingCosts(params) {
         { assumption: 'Rent Increase', value: `${rentIncreaseRate}%/yr` },
         { assumption: 'Federal Tax Rate', value: `${federalTaxRate}%` },
         { assumption: 'State Tax Rate', value: `${stateTaxRate}%` },
+        { assumption: 'SALT Deduction Limit', value: formatCurrency(10000) },
+        { assumption: 'Mortgage Interest Deduction Limit', value: `Interest on up to ${formatCurrency(750000)}` },
         { assumption: 'Appreciation', value: `${appreciationRate}%/yr` },
         { assumption: 'Realtor Fee', value: `${realtorFeePct}%` },
         { assumption: 'Capital Gains Tax', value: `${capitalGainsRate}%` }
