@@ -120,6 +120,7 @@
           <label class="toggle-label">
             <input type="checkbox" id="today-dollars-toggle">
             <span>Show in Today's Dollars</span>
+            <a href="#" id="discount-info" class="info-icon" title="Learn about today's dollars">ⓘ</a>
           </label>
         </div>
         <div class="tabs">
@@ -213,12 +214,16 @@
           <h4>Total Cost Comparison</h4>
           <p>The total cost of ownership includes all annual costs minus the net proceeds from selling. For renting, it's simply the cumulative rent paid. The crossover point occurs when one option becomes more economical than the other.</p>
 
-          <h3>Discounting to Today's Dollars</h3>
-          <p>When this option is checked, all future amounts are adjusted for inflation to reflect what they'd be worth in today's money. This is called discounting, and it uses a discount rate (typically the expected inflation rate) to account for the decreasing value of money over time.</p>
+          <h4 id="discount-explanation">Today's Dollars (Discounting)</h4>
+          <p>When this option is checked, all future amounts are adjusted to reflect what they'd be worth in today's money. This is called discounting, and it uses a discount rate to account for the time value of money - the principle that a dollar today is worth more than a dollar in the future.</p>
+          
+          <p>Each expense and revenue is discounted based on the year it occurs, using the formula: Present Value = Future Value / (1 + Discount Rate)^Year.</p>
+          
+          <p>For example, if the discount rate is 3%, then $1,000 received 10 years from now is only worth about $744 today.</p>
+          
+          <p>This gives you a more accurate picture of the true economic impact of your housing decision.</p>
 
-          <p>For example, if the discount rate is 3%, then $1,000 received 10 years from now is only worth about $744 today, because money in the future will buy less than it can today.</p>
-
-          <p>This is especially important when projecting the sale of a condo many years in the future. In this app, selling in year N means you receive the full sale proceeds in that year, so the entire amount is discounted. That can make future sale values appear much smaller in today’s dollars, even though the actual (future) amount might be quite large.</p>
+          <p>This is especially important when projecting the sale of a property many years in the future. In this app, selling in year N means you receive the full sale proceeds in that year, so the entire amount is discounted. That can make future sale values appear much smaller in today’s dollars, even though the actual (future) amount might be quite large.</p>
 
           <p>Seeing amounts in today’s dollars helps you make more meaningful comparisons across time.</p>
 

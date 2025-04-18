@@ -12,6 +12,33 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`${this.dataset.tab}-tab`).classList.add('active');
         });
     });
+    
+    // Set up info icon for today's dollars explanation
+    document.getElementById('discount-info').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Switch to the about tab
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        
+        document.querySelector('.tab[data-tab="about"]').classList.add('active');
+        document.getElementById('about-tab').classList.add('active');
+        
+        // Scroll to the explanation
+        const explanationElement = document.getElementById('discount-explanation');
+        if (explanationElement) {
+            setTimeout(() => {
+                explanationElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Briefly highlight the section
+                explanationElement.style.backgroundColor = 'rgba(51, 102, 153, 0.1)';
+                setTimeout(() => {
+                    explanationElement.style.backgroundColor = '';
+                    explanationElement.style.transition = 'background-color 1s ease';
+                }, 100);
+            }, 100);
+        }
+    });
 
     // Set up all input elements to trigger calculation on change (no more often than every 100ms)
     const inputElements = document.querySelectorAll('input, select');

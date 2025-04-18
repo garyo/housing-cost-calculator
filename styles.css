@@ -212,6 +212,23 @@ tr:nth-child(even) {
     transform: scale(1.2);
 }
 
+.info-icon {
+    display: inline-block;
+    margin-left: 8px;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.info-icon:hover {
+    color: #264d73;
+    transform: scale(1.1);
+}
+
 
 .winner {
     font-weight: bold;
