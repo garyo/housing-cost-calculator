@@ -1,227 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Housing Cost Calculator</title>
     <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+  </head>
+  <body>
     <h1>Housing Cost Calculator: Rent vs. Buy</h1>
     
     <div class="container">
-        <div class="input-panel">
-            <h2>Input Parameters</h2>
-            <div class="form-group">
-                <label for="analysis-years">Analysis Period (years)</label>
-                <input type="number" id="analysis-years" value="10" min="1" max="30">
-            </div>
-            
-            <h3>Apartment</h3>
-            <div class="form-row">
-              <div class="form-group half">
-                <label for="apartment-rent">Monthly Rent ($)</label>
-                <input type="number" id="apartment-rent" value="1200" min="0">
-              </div>
-              <div class="form-group half">
-                <label for="rent-increase">Annual Rent Incr (%)</label>
-                <input type="number" id="rent-increase" value="3" min="0" step="0.1">
-              </div>
-            </div>
-
-            <h3>Condo</h3>
-            <div class="form-row">
-              <div class="form-group half">
-                <label for="condo-price">Condo Price ($)</label>
-                <input type="number" id="condo-price" value="500000" min="0" step="1000">
-              </div>
-              <div class="form-group half">
-                <label for="down-payment">Down Payment (%)</label>
-                <input type="number" id="down-payment" value="20" min="0" max="100" step="1">
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="down-payment-source">Down Payment Source</label>
-              <select id="down-payment-source">
-                <option value="cash">Cash on Hand</option>
-                <option value="stocks">Sell Stocks (Capital Gains Tax)</option>
-                <option value="loan">Loan</option>
-              </select>
-            </div>
-            <div class="form-group hidden" id="home-eq-rate-container">
-              <label for="equity-loan-rate">Down-Payment Loan Rate (%)</label>
-              <input type="number" id="equity-loan-rate" value="7.5" min="0" step="0.1">
-            </div>
-            <div class="form-group hidden" id="equity-loan-term-container">
-              <label for="equity-loan-term">Down-Payment Loan Term (years)</label>
-              <input type="number" id="equity-loan-term" value="10" min="1" max="30" step="1">
-            </div>
-            <div class="form-group hidden" id="stock-gain-container">
-              <label for="stock-gain">Stock Gain Since Purchase (%)</label>
-              <input type="number" id="stock-gain" value="20" min="0" max="200" step="1">
-            </div>
-            <div class="form-group">
-              <label for="mortgage-rate">Mortgage Rate (%)</label>
-              <input type="number" id="mortgage-rate" value="6.5" min="0" step="0.1">
-            </div>
-            <div class="form-group">
-                <label for="mortgage-years">Mortgage Term (years)</label>
-                <input type="number" id="mortgage-years" value="20" min="1" max="30" step="1">
-            </div>
-            <div class="form-group">
-                <label for="hoa-rate">HOA Fee (% of property value per month)</label>
-                <input type="number" id="hoa-rate" value="0.1" min="0" step="0.01">
-            </div>
-            <div class="form-group">
-                <label for="insurance-rate">Homeowners Insurance (% of current property value per year)</label>
-                <input type="number" id="insurance-rate" value="0.50" min="0" step="0.01">
-            </div>
-            <div class="form-group">
-                <label for="appreciation">Annual Property Appreciation (%)</label>
-                <input type="number" id="appreciation" value="4" min="0" step="0.1">
-            </div>
-            
-            <h3>Tax Information</h3>
-            <div class="form-group">
-              <label for="property-tax">Property Tax Rate (per $1000)</label>
-              <input type="number" id="property-tax" value="10.90" min="0" step="0.01">
-            </div>
-            <div class="form-row">
-              <div class="form-group half">
-                <label for="federal-tax">Federal Tax Rate (%)</label>
-                <input type="number" id="federal-tax" value="24" min="0" max="100" step="0.1">
-              </div>
-              <div class="form-group half">
-                <label for="state-tax">State Tax Rate (%)</label>
-                <input type="number" id="state-tax" value="5" min="0" max="100" step="0.1">
-              </div>
-            </div>
-            <div class="form-group">
-                <label for="capital-gains">Capital Gains Tax Rate (%)</label>
-                <input type="number" id="capital-gains" value="15" min="0" max="100" step="0.1">
-            </div>
-            
-            <h3>Other</h3>
-            <div class="form-group">
-                <label for="realtor-fee">Realtor Fee (%)</label>
-                <input type="number" id="realtor-fee" value="5" min="0" max="100" step="0.1">
-            </div>
-            <div class="form-group">
-                <label for="discount-rate">Discount Rate (%)</label>
-                <input type="number" id="discount-rate" value="3" min="0" max="20" step="0.1">
-            </div>
-            
-            <button id="calculate-btn">Calculate</button>
-            <div id="error-alert" class="alert"></div>
+      <div class="input-panel">
+        <h2>Input Parameters</h2>
+        <div class="form-group">
+          <label for="analysis-years">Analysis Period (years)</label>
+          <input type="number" id="analysis-years" value="10" min="1" max="30">
         </div>
         
-        <div class="results-panel">
-            <div class="top-controls">
-                <label class="toggle-label">
-                    <input type="checkbox" id="today-dollars-toggle">
-                    <span>Show in Today's Dollars</span>
-                </label>
+        <h3>Apartment</h3>
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="apartment-rent">Monthly Rent ($)</label>
+            <input type="number" id="apartment-rent" value="1200" min="0">
+          </div>
+          <div class="form-group half">
+            <label for="rent-increase">Annual Rent Incr (%)</label>
+            <input type="number" id="rent-increase" value="3" min="0" step="0.1">
+          </div>
+        </div>
+
+        <h3>Condo</h3>
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="condo-price">Condo Price ($)</label>
+            <input type="number" id="condo-price" value="500000" min="0" step="1000">
+          </div>
+          <div class="form-group half">
+            <label for="down-payment">Down Payment (%)</label>
+            <input type="number" id="down-payment" value="20" min="0" max="100" step="1">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="down-payment-source">Down Payment Source</label>
+          <select id="down-payment-source">
+            <option value="cash">Cash on Hand</option>
+            <option value="stocks">Sell Stocks (Capital Gains Tax)</option>
+            <option value="loan">Loan</option>
+          </select>
+        </div>
+        <div class="form-group hidden" id="home-eq-rate-container">
+          <label for="equity-loan-rate">Down-Payment Loan Rate (%)</label>
+          <input type="number" id="equity-loan-rate" value="7.5" min="0" step="0.1">
+        </div>
+        <div class="form-group hidden" id="equity-loan-term-container">
+          <label for="equity-loan-term">Down-Payment Loan Term (years)</label>
+          <input type="number" id="equity-loan-term" value="10" min="1" max="30" step="1">
+        </div>
+        <div class="form-group hidden" id="stock-gain-container">
+          <label for="stock-gain">Stock Gain Since Purchase (%)</label>
+          <input type="number" id="stock-gain" value="20" min="0" max="200" step="1">
+        </div>
+        <div class="form-group">
+          <label for="mortgage-rate">Mortgage Rate (%)</label>
+          <input type="number" id="mortgage-rate" value="6.5" min="0" step="0.1">
+        </div>
+        <div class="form-group">
+          <label for="mortgage-years">Mortgage Term (years)</label>
+          <input type="number" id="mortgage-years" value="20" min="1" max="30" step="1">
+        </div>
+        <div class="form-group">
+          <label for="hoa-rate">HOA Fee (% of property value per month)</label>
+          <input type="number" id="hoa-rate" value="0.1" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="insurance-rate">Homeowners Insurance (% of current property value per year)</label>
+          <input type="number" id="insurance-rate" value="0.50" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="appreciation">Annual Property Appreciation (%)</label>
+          <input type="number" id="appreciation" value="4" min="0" step="0.1">
+        </div>
+        
+        <h3>Tax Information</h3>
+        <div class="form-group">
+          <label for="property-tax">Property Tax Rate (per $1000)</label>
+          <input type="number" id="property-tax" value="10.90" min="0" step="0.01">
+        </div>
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="federal-tax">Federal Tax Rate (%)</label>
+            <input type="number" id="federal-tax" value="24" min="0" max="100" step="0.1">
+          </div>
+          <div class="form-group half">
+            <label for="state-tax">State Tax Rate (%)</label>
+            <input type="number" id="state-tax" value="5" min="0" max="100" step="0.1">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="capital-gains">Capital Gains Tax Rate (%)</label>
+          <input type="number" id="capital-gains" value="15" min="0" max="100" step="0.1">
+        </div>
+        
+        <h3>Other</h3>
+        <div class="form-group">
+          <label for="realtor-fee">Realtor Fee (%)</label>
+          <input type="number" id="realtor-fee" value="5" min="0" max="100" step="0.1">
+        </div>
+        <div class="form-group">
+          <label for="discount-rate">Discount Rate (%)</label>
+          <input type="number" id="discount-rate" value="3" min="0" max="20" step="0.1">
+        </div>
+        
+        <button id="calculate-btn">Calculate</button>
+        <div id="error-alert" class="alert"></div>
+      </div>
+      
+      <div class="results-panel">
+        <div class="top-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="today-dollars-toggle">
+            <span>Show in Today's Dollars</span>
+          </label>
+        </div>
+        <div class="tabs">
+          <div class="tab active" data-tab="summary">Summary</div>
+          <div class="tab" data-tab="yearly">Yearly Breakdown</div>
+          <div class="tab" data-tab="assumptions">Assumptions</div>
+          <div class="tab" data-tab="chart">Chart</div>
+          <div class="tab" data-tab="about">About</div>
+        </div>
+        
+        <div id="summary-tab" class="tab-content active">
+          <h2>Summary of Analysis<span class="today-dollars-indicator" style="display: none;"></span></h2>
+          <p>Showing analysis for <span id="analysis-years-display">5</span> years.<br>Condo cost is the final cost assuming it's sold in that year.</p>
+          <div id="summary-table-container"></div>
+        </div>
+        
+        <div id="yearly-tab" class="tab-content">
+          <h2>Yearly Cost Breakdown<span class="today-dollars-indicator" style="display: none;"></span></h2>
+          <div id="yearly-table-container"></div>
+        </div>
+        
+        <div id="assumptions-tab" class="tab-content">
+          <h2>Analysis Assumptions</h2>
+          <div id="assumptions-table-container"></div>
+        </div>
+        
+        <div id="chart-tab" class="tab-content">
+          <h2>Cost Comparisons</h2>
+          <div class="charts-section">
+            <div>
+              <h3>Cumulative Costs Over Time<span class="today-dollars-indicator" style="display: none;"></span></h3>
+              <p>This chart shows the total costs accumulated over time for both options. The condo cost is the net cost after sale, assuming the condo is sold in that year.</p>
+              <div id="chart-container" class="chart-container"></div>
+              <div id="crossover-point"></div>
             </div>
-            <div class="tabs">
-                <div class="tab active" data-tab="summary">Summary</div>
-                <div class="tab" data-tab="yearly">Yearly Breakdown</div>
-                <div class="tab" data-tab="assumptions">Assumptions</div>
-                <div class="tab" data-tab="chart">Chart</div>
-                <div class="tab" data-tab="about">About</div>
+            <div>
+              <h3>Annual Housing Expenses<span class="today-dollars-indicator" style="display: none;"></span></h3>
+              <p>This chart shows the year-by-year expenses for each housing option, assuming the condo is <i>not</i> sold:</p>
+              <div id="annual-expenses-container" class="chart-container"></div>
             </div>
-            
-            <div id="summary-tab" class="tab-content active">
-                <h2>Summary of Analysis<span class="today-dollars-indicator" style="display: none;"></span></h2>
-                <p>Showing analysis for <span id="analysis-years-display">5</span> years.<br>Condo cost is the final cost assuming it's sold in that year.</p>
-                <div id="summary-table-container"></div>
-            </div>
-            
-            <div id="yearly-tab" class="tab-content">
-                <h2>Yearly Cost Breakdown<span class="today-dollars-indicator" style="display: none;"></span></h2>
-                <div id="yearly-table-container"></div>
-            </div>
-            
-            <div id="assumptions-tab" class="tab-content">
-                <h2>Analysis Assumptions</h2>
-                <div id="assumptions-table-container"></div>
-            </div>
-            
-            <div id="chart-tab" class="tab-content">
-              <h2>Cost Comparisons</h2>
-              <div class="charts-section">
-                <div>
-                  <h3>Cumulative Costs Over Time<span class="today-dollars-indicator" style="display: none;"></span></h3>
-                  <p>This chart shows the total costs accumulated over time for both options. The condo cost is the net cost after sale, assuming the condo is sold in that year.</p>
-                  <div id="chart-container" class="chart-container"></div>
-                  <div id="crossover-point"></div>
-                </div>
-                <div>
-                  <h3>Annual Housing Expenses<span class="today-dollars-indicator" style="display: none;"></span></h3>
-                  <p>This chart shows the year-by-year expenses for each housing option, assuming the condo is <i>not</i> sold:</p>
-                  <div id="annual-expenses-container" class="chart-container"></div>
-                </div>
-              </div>
-            </div>
-            <div id="about-tab" class="tab-content">
-              <h2>About This Calculator</h2>
+          </div>
+        </div>
+        <div id="about-tab" class="tab-content">
+          <h2>About This Calculator</h2>
 
-              <p>This calculator performs a nominal financial analysis comparing the costs of renting versus buying a home over a specified time period. All future costs are in future dollars (not inflation-adjusted).</p>
+          <p>This calculator performs a nominal financial analysis comparing the costs of renting versus buying a home over a specified time period. All future costs are in future dollars (not inflation-adjusted).</p>
 
-              <h3>Key Calculations</h3>
+          <h3>Key Calculations</h3>
 
-              <h4>Mortgage Calculations</h4>
-              <p>Monthly mortgage payments are calculated using the standard amortization formula. For each payment, we determine how much goes to interest versus principal reduction, which impacts equity building and tax benefits.</p>
+          <h4>Mortgage Calculations</h4>
+          <p>Monthly mortgage payments are calculated using the standard amortization formula. For each payment, we determine how much goes to interest versus principal reduction, which impacts equity building and tax benefits.</p>
 
-              <h4>Down Payment Options</h4>
-              <p>This calculator provides three different ways to fund your down payment:</p>
-              <ul>
-                <li><strong>Cash on Hand:</strong> Uses your existing cash savings with no additional cost.</li>
-                <li><strong>Selling Stocks:</strong> Incurs capital gains tax on the amount liquidated net of cost basis, representing the opportunity cost of selling investments. Enter the total stock gain since purchase in percent.</li>
-                <li><strong>Loan:</strong> Finances the down payment with a separate loan, adding monthly payments but avoiding the upfront capital gains tax.</li>
-              </ul>
-              <p>Each option has different financial implications, and the calculator shows how these choices affect the economics of homeownership over time.</p>
+          <h4>Down Payment Options</h4>
+          <p>This calculator provides three different ways to fund your down payment:</p>
+          <ul>
+            <li><strong>Cash on Hand:</strong> Uses your existing cash savings with no additional cost.</li>
+            <li><strong>Selling Stocks:</strong> Incurs capital gains tax on the amount liquidated net of cost basis, representing the opportunity cost of selling investments. Enter the total stock gain since purchase in percent.</li>
+            <li><strong>Loan:</strong> Finances the down payment with a separate loan, adding monthly payments but avoiding the upfront capital gains tax.</li>
+          </ul>
+          <p>Each option has different financial implications, and the calculator shows how these choices affect the economics of homeownership over time.</p>
 
-              <h4>Annual Ownership Costs</h4>
-              <p>Beyond mortgage payments, we account for property taxes (calculated as a rate per $1,000 of property value) and HOA fees (calculated as a percentage of property value per month). These expenses typically increase as the property appreciates.</p>
+          <h4>Annual Ownership Costs</h4>
+          <p>Beyond mortgage payments, we account for property taxes (calculated as a rate per $1,000 of property value) and HOA fees (calculated as a percentage of property value per month). These expenses typically increase as the property appreciates.</p>
 
-              <h4>Tax Benefits</h4>
-              <p>The calculator includes tax savings from deducting mortgage interest and property taxes based on your combined federal and state marginal tax rates, subject to current tax law limitations:</p>
-              <ul>
-                <li><strong>SALT Deduction Limit:</strong> State and Local Tax deductions (including property tax) are capped at $10,000 per year.</li>
-                <li><strong>Mortgage Interest Deduction Limit:</strong> Interest is only deductible on mortgage debt up to $750,000.</li>
-              </ul>
-              <p>Note that while mortgage interest and property taxes are typically deductible subject to these limits, 
-                interest on a home equity loan used for a down payment on a different property
-                is not tax-deductible under current US tax laws.</p>
+          <h4>Tax Benefits</h4>
+          <p>The calculator includes tax savings from deducting mortgage interest and property taxes based on your combined federal and state marginal tax rates, subject to current tax law limitations:</p>
+          <ul>
+            <li><strong>SALT Deduction Limit:</strong> State and Local Tax deductions (including property tax) are capped at $10,000 per year.</li>
+            <li><strong>Mortgage Interest Deduction Limit:</strong> Interest is only deductible on mortgage debt up to $750,000.</li>
+          </ul>
+          <p>Note that while mortgage interest and property taxes are typically deductible subject to these limits, 
+            interest on a home equity loan used for a down payment on a different property
+            is not tax-deductible under current US tax laws.</p>
 
-              <h4>Property Appreciation</h4>
-              <p>We model how property value changes over time using a fixed annual appreciation rate. This impacts your equity growth and the final sale price of the property.</p>
+          <h4>Property Appreciation</h4>
+          <p>We model how property value changes over time using a fixed annual appreciation rate. This impacts your equity growth and the final sale price of the property.</p>
 
-              <h4>Rental Costs</h4>
-              <p>Rental costs start at your specified monthly rent and increase annually at your chosen rate to reflect typical market conditions.</p>
+          <h4>Rental Costs</h4>
+          <p>Rental costs start at your specified monthly rent and increase annually at your chosen rate to reflect typical market conditions.</p>
 
-              <h4>Sale Proceeds Calculation</h4>
-              <p>When selling the property, we calculate proceeds by taking the appreciated value, then subtracting:
-                <ul>
-                  <li>Realtor fees (as a percentage of sale price)</li>
-                  <li>Capital gains tax on any profit (sale price minus purchase price)</li>
-                  <li>Remaining mortgage balance</li>
-                  <li>Remaining loan balance (if applicable)</li>
-                </ul>
-              </p>
+          <h4>Sale Proceeds Calculation</h4>
+          <p>When selling the property, we calculate proceeds by taking the appreciated value, then subtracting:
+            <ul>
+              <li>Realtor fees (as a percentage of sale price)</li>
+              <li>Capital gains tax on any profit (sale price minus purchase price)</li>
+              <li>Remaining mortgage balance</li>
+              <li>Remaining loan balance (if applicable)</li>
+            </ul>
+          </p>
 
-              <h4>Total Cost Comparison</h4>
-              <p>The total cost of ownership includes all annual costs minus the net proceeds from selling. For renting, it's simply the cumulative rent paid. The crossover point occurs when one option becomes more economical than the other.</p>
+          <h4>Total Cost Comparison</h4>
+          <p>The total cost of ownership includes all annual costs minus the net proceeds from selling. For renting, it's simply the cumulative rent paid. The crossover point occurs when one option becomes more economical than the other.</p>
 
-              <h3>Methodology Notes</h3>
-              <p>This calculator makes several simplifying assumptions:</p>
-              <ul>
-                <li>All tax rates remain constant throughout the analysis period</li>
-                <li>Property appreciation and rent increases occur at constant annual rates</li>
-                <li>All mortgage interest is tax-deductible (consult a tax professional about your specific situation)</li>
-                <li>No major repairs or renovations are included in the ownership costs</li>
-                <li>No transaction costs other than realtor fees and capital gains tax are included in the sale</li>
-              </ul>
           <h3>Discounting to Today's Dollars</h3>
           <p>When this option is checked, all future amounts are adjusted for inflation to reflect what they'd be worth in today's money. This is called discounting, and it uses a discount rate (typically the expected inflation rate) to account for the decreasing value of money over time.</p>
 
@@ -245,11 +236,11 @@
           <p>This applet is open-source under an MIT license: <a href="https://github.com/garyo/housing-cost-calculator">github</a></p>
 
         </div>
-    </div>
+      </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-    <script src="financial.js"></script>
-    <script src="ui.js"></script>
-    <script src="main.js"></script>
-</body>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+      <script src="financial.js"></script>
+      <script src="ui.js"></script>
+      <script src="main.js"></script>
+  </body>
 </html>
