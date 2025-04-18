@@ -81,6 +81,11 @@ function calculateAndDisplay() {
               format: (value) => formatCurrency(value)
             },
             {
+              field: 'insurance',
+              header: 'Insurance',
+              format: (value) => formatCurrency(value)
+            },
+            {
               field: 'taxSavings',
               header: 'Tax Savings',
               format: (value) => formatCurrency(value)
@@ -169,6 +174,7 @@ function saveParamsToURL() {
         'mortgageYears': 'mortgage-years',
         'propertyTaxRate': 'property-tax',
         'hoaRate': 'hoa-rate',
+        'insuranceRate': 'insurance-rate',
         'federalTaxRate': 'federal-tax',
         'stateTaxRate': 'state-tax',
         'appreciationRate': 'appreciation',

@@ -285,6 +285,7 @@ function getParameters() {
         const mortgageYears = parseInt(document.getElementById('mortgage-years').value);
         const propertyTaxRate = parseFloat(document.getElementById('property-tax').value);
         const hoaRate = parseFloat(document.getElementById('hoa-rate').value);
+        const insuranceRate = parseFloat(document.getElementById('insurance-rate').value);
         const federalTaxRate = parseFloat(document.getElementById('federal-tax').value);
         const stateTaxRate = parseFloat(document.getElementById('state-tax').value);
         const appreciationRate = parseFloat(document.getElementById('appreciation').value);
@@ -305,6 +306,7 @@ function getParameters() {
         if (downPaymentSource === 'loan' && (isNaN(equityLoanYears) || equityLoanYears <= 0)) throw new Error('Loan term must be a positive number');
         if (isNaN(propertyTaxRate) || propertyTaxRate < 0) throw new Error('Property tax rate must be a non-negative number');
         if (isNaN(hoaRate) || hoaRate < 0) throw new Error('HOA rate must be a non-negative number');
+        if (isNaN(insuranceRate) || insuranceRate < 0) throw new Error('Insurance rate must be a non-negative number');
         if (isNaN(federalTaxRate) || federalTaxRate < 0 || federalTaxRate > 100) throw new Error('Federal tax rate must be between 0 and 100%');
         if (isNaN(stateTaxRate) || stateTaxRate < 0 || stateTaxRate > 100) throw new Error('State tax rate must be between 0 and 100%');
         if (isNaN(appreciationRate) || appreciationRate < 0) throw new Error('Appreciation rate must be a non-negative number');
@@ -324,6 +326,7 @@ function getParameters() {
             mortgageYears,
             propertyTaxRate,
             hoaRate,
+            insuranceRate,
             federalTaxRate,
             stateTaxRate,
             appreciationRate,

@@ -74,7 +74,7 @@ function calculateLoanPayments(year, loanAmount, annualRate, loanYears) {
 }
 
 function calculateAnnualCosts(year, loanAmount, mortgageRate, mortgageYears,
-                             condoPrice, appreciationRate, propertyTaxRate, hoaRate) {
+                             condoPrice, appreciationRate, propertyTaxRate, hoaRate, insuranceRate) {
     // Determine property value this year
     const currentPropertyValue = annualPropertyValue(condoPrice, appreciationRate, year);
 
@@ -87,6 +87,9 @@ function calculateAnnualCosts(year, loanAmount, mortgageRate, mortgageYears,
     // HOA is a percentage per MONTH of the current property value
     const monthlyHoa = currentPropertyValue * (hoaRate / 100);
     const annualHoa = monthlyHoa * 12;
+    
+    // Homeowners insurance is a percentage per YEAR of the current property value
+    const annualInsurance = currentPropertyValue * (insuranceRate / 100);
 
     return {
         annualInterest: mortgagePayments.annualInterest,
@@ -94,6 +97,7 @@ function calculateAnnualCosts(year, loanAmount, mortgageRate, mortgageYears,
         annualMortgage: mortgagePayments.annualPayment,
         annualPropertyTax,
         annualHoa,
+        annualInsurance,
         mortgageActive: mortgagePayments.loanActive
     };
 }
@@ -111,6 +115,7 @@ function calculateHousingCosts(params) {
         mortgageYears,
         propertyTaxRate,
         hoaRate,
+        insuranceRate,
         federalTaxRate,
         stateTaxRate,
         appreciationRate,
@@ -162,7 +167,8 @@ function calculateHousingCosts(params) {
             condoPrice,
             appreciationRate,
             propertyTaxRate,
-            hoaRate
+            hoaRate,
+            insuranceRate
         );
 
         // Calculate equity loan payments for this year if applicable
@@ -201,6 +207,7 @@ function calculateHousingCosts(params) {
         const netCondoCost = annualCosts.annualMortgage +
             annualCosts.annualPropertyTax +
             annualCosts.annualHoa +
+            annualCosts.annualInsurance +
             equityLoanPayments.annualPayment -
             annualTaxSavings;
 
@@ -216,6 +223,7 @@ function calculateHousingCosts(params) {
             equityLoanPayment: equityLoanPayments.annualPayment,
             propertyTax: annualCosts.annualPropertyTax,
             hoa: annualCosts.annualHoa,
+            insurance: annualCosts.annualInsurance,
             taxSavings: annualTaxSavings,
             netCondoCost,
             propertyValue,
@@ -274,6 +282,7 @@ function calculateHousingCosts(params) {
         { assumption: 'Mortgage Term', value: `${mortgageYears} years` },
         { assumption: 'Property Tax Rate', value: `${propertyTaxRate} per $1000/yr` },
         { assumption: 'HOA Fee', value: `${hoaRate}%/mo of property value` },
+        { assumption: 'Homeowners Insurance', value: `${insuranceRate}% of property value/yr` },
         { assumption: 'Rent Increase', value: `${rentIncreaseRate}%/yr` },
         { assumption: 'Federal Tax Rate', value: `${federalTaxRate}%` },
         { assumption: 'State Tax Rate', value: `${stateTaxRate}%` },
