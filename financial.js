@@ -102,6 +102,17 @@ function calculateAnnualCosts(year, loanAmount, mortgageRate, mortgageYears,
     };
 }
 
+/**
+ * Apply present value discount to a value based on year
+ * @param {number} value - The value to discount
+ * @param {number} year - The year of the value
+ * @param {number} discountRate - Annual discount rate in percent
+ * @returns {number} The present value of the amount
+ */
+function calculatePresentValue(value, year, discountRate) {
+    return value / Math.pow(1 + discountRate / 100, year);
+}
+
 function calculateHousingCosts(params) {
     const {
         analysisYears,
@@ -257,14 +268,27 @@ function calculateHousingCosts(params) {
     const capitalGainsTax = capitalGains * (capitalGainsRate / 100);
     const netSaleProceeds = finalPropertyValue - realtorFees - capitalGainsTax - remainingPrincipal - remainingEquityLoanPrincipal;
 
+    // Store the sale-related amounts for year-specific calculations
+    const saleData = {
+        finalPropertyValue,
+        realtorFees,
+        capitalGainsTax,
+        remainingPrincipal,
+        remainingEquityLoanPrincipal,
+        netSaleProceeds
+    };
+
     // Calculate total costs over entire period
     const totalApartmentCost = yearlyData.reduce((sum, data) => sum + data.apartmentCost, 0);
+
+    // Calculate initial expenses (down payment and any taxes on it)
+    const initialExpenses = (useEquityLoan ? 0 : downPayment) + // Add down payment for cash and stocks
+                           capGainsTaxOnDownPayment; // Capital gains tax only for stocks
 
     // When calculating total cost, only add down payment when using cash or stocks
     const totalCondoCost = yearlyData.reduce((sum, data) => sum + data.netCondoCost, 0) -
                            netSaleProceeds +
-                           (useEquityLoan ? 0 : downPayment) + // Add down payment for cash and stocks
-                           capGainsTaxOnDownPayment; // Capital gains tax only for stocks
+                           initialExpenses;
 
     // Summary data
     const summaryData = [
@@ -315,7 +339,10 @@ function calculateHousingCosts(params) {
         totalApartmentCost,
         totalCondoCost,
         finalPropertyValue,
-        netSaleProceeds
+        netSaleProceeds,
+        initialExpenses,
+        saleData,
+        yearlyData
     };
 
     return {
@@ -324,17 +351,6 @@ function calculateHousingCosts(params) {
         assumptionsData,
         metrics
     };
-}
-
-/**
- * Apply present value discount to a value based on year
- * @param {number} value - The value to discount
- * @param {number} year - The year of the value
- * @param {number} discountRate - Annual discount rate in percent
- * @returns {number} The present value of the amount
- */
-function calculatePresentValue(value, year, discountRate) {
-    return value / Math.pow(1 + discountRate / 100, year);
 }
 
 function generateCostComparison(maxYears, params) {
@@ -346,15 +362,40 @@ function generateCostComparison(maxYears, params) {
         const yearParams = { ...params, analysisYears: year };
         const { metrics } = calculateHousingCosts(yearParams);
         
-        let apartmentCost = metrics.totalApartmentCost;
-        let condoCost = metrics.totalCondoCost;
-        let propertyValue = metrics.finalPropertyValue;
+        let apartmentCost, condoCost, propertyValue;
         
-        // Apply present value discount if enabled
         if (useTodaysDollars && discountRate > 0) {
-            apartmentCost = calculatePresentValue(apartmentCost, year, discountRate);
-            condoCost = calculatePresentValue(condoCost, year, discountRate);
-            propertyValue = calculatePresentValue(propertyValue, year, discountRate);
+            // For today's dollars calculation, we need to handle each component individually
+            
+            // Initial expenses (down payment, etc.) are in year 0
+            const discountedInitialExpenses = calculatePresentValue(metrics.initialExpenses, 0, discountRate);
+            
+            // Annual costs need to be discounted by their respective years
+            const discountedYearlyCosts = metrics.yearlyData.reduce((sum, data, index) => {
+                const yearNumber = index + 1; // because array is 0-indexed but years start at 1
+                return sum + calculatePresentValue(data.netCondoCost, yearNumber, discountRate);
+            }, 0);
+            
+            // Sale proceeds happen in the final year
+            const saleYear = year;
+            const discountedSaleProceeds = calculatePresentValue(metrics.saleData.netSaleProceeds, saleYear, discountRate);
+            
+            // Final property value also happens in the final year
+            propertyValue = calculatePresentValue(metrics.finalPropertyValue, saleYear, discountRate);
+            
+            // Total apartment costs also need year-by-year discounting
+            apartmentCost = metrics.yearlyData.reduce((sum, data, index) => {
+                const yearNumber = index + 1;
+                return sum + calculatePresentValue(data.apartmentCost, yearNumber, discountRate);
+            }, 0);
+            
+            // Total condo cost is initial expenses + annual costs - sale proceeds
+            condoCost = discountedInitialExpenses + discountedYearlyCosts - discountedSaleProceeds;
+        } else {
+            // Normal case - no discounting
+            apartmentCost = metrics.totalApartmentCost;
+            condoCost = metrics.totalCondoCost;
+            propertyValue = metrics.finalPropertyValue;
         }
         
         comparisonData.push({
