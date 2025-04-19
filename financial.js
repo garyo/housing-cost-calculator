@@ -1,18 +1,33 @@
 // Financial calculation functions
 function calculateMortgagePayment(principal, annualRate, years) {
-    const monthlyRate = (annualRate / 100) / 12;
     const numPayments = years * 12;
+    
+    // Handle 0% interest rate (avoid divide-by-zero)
+    if (annualRate === 0) {
+        return principal / numPayments;
+    }
+    
+    // Standard formula for non-zero interest rates
+    const monthlyRate = (annualRate / 100) / 12;
     return (principal * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
            (Math.pow(1 + monthlyRate, numPayments) - 1);
 }
 
 function calculateMonthlyInterestAndPrincipal(principal, annualRate, years, paymentNumber) {
+    const payment = calculateMortgagePayment(principal, annualRate, years);
+    
+    // Handle 0% interest rate
+    if (annualRate === 0) {
+        return {
+            interest: 0,
+            principalPaid: payment
+        };
+    }
+    
     const monthlyRate = (annualRate / 100) / 12;
-    const numPayments = years * 12;
 
     // Calculate remaining principal at the start of this payment
     let remainingPrincipal = principal;
-    const payment = calculateMortgagePayment(principal, annualRate, years);
 
     for (let i = 1; i < paymentNumber; i++) {
         const interestPart = remainingPrincipal * monthlyRate;
@@ -43,6 +58,16 @@ function calculateLoanPayments(year, loanAmount, annualRate, loanYears) {
     // Check if the loan is still active this year
     const loanActive = year <= loanYears;
 
+    // If loan amount is 0, short-circuit with zeros
+    if (loanAmount === 0) {
+        return {
+            annualInterest: 0,
+            annualPrincipal: 0,
+            annualPayment: 0,
+            loanActive: false
+        };
+    }
+
     // Monthly loan calculation
     const monthlyPayment = loanActive ?
         calculateMortgagePayment(loanAmount, annualRate, loanYears) : 0;
@@ -53,15 +78,21 @@ function calculateLoanPayments(year, loanAmount, annualRate, loanYears) {
     let annualPrincipal = 0;
 
     if (loanActive) {
-        const startPaymentNum = (year - 1) * 12 + 1;
-        const endPaymentNum = year * 12;
+        // Special case for 0% interest
+        if (annualRate === 0) {
+            annualInterest = 0;
+            annualPrincipal = annualPayment;
+        } else {
+            const startPaymentNum = (year - 1) * 12 + 1;
+            const endPaymentNum = year * 12;
 
-        for (let paymentNumber = startPaymentNum; paymentNumber <= endPaymentNum; paymentNumber++) {
-            const { interest, principalPaid } = calculateMonthlyInterestAndPrincipal(
-                loanAmount, annualRate, loanYears, paymentNumber
-            );
-            annualInterest += interest;
-            annualPrincipal += principalPaid;
+            for (let paymentNumber = startPaymentNum; paymentNumber <= endPaymentNum; paymentNumber++) {
+                const { interest, principalPaid } = calculateMonthlyInterestAndPrincipal(
+                    loanAmount, annualRate, loanYears, paymentNumber
+                );
+                annualInterest += interest;
+                annualPrincipal += principalPaid;
+            }
         }
     }
 
