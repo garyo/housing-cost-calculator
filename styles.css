@@ -256,6 +256,18 @@ tr:nth-child(even) {
     margin-bottom: 0;
 }
 
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+.header > * {
+    margin: 0;
+}
+.author {
+    color: #888;
+    font-size: 0.9em;
+}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
