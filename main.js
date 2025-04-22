@@ -13,6 +13,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
+    // Set up instant update for HOA monthly display when either HOA rate or condo price changes
+    function updateHoaMonthly() {
+        const condoPrice = parseFloat(document.getElementById('condo-price').value) || 0;
+        const hoaRate = parseFloat(document.getElementById('hoa-rate').value) || 0;
+        const monthlyHoa = condoPrice * (hoaRate / 100);
+        document.getElementById('hoa-monthly-display').textContent = `${formatCurrency(monthlyHoa)}/month`;
+    }
+    
+    document.getElementById('hoa-rate').addEventListener('input', updateHoaMonthly);
+    document.getElementById('condo-price').addEventListener('input', updateHoaMonthly);
+    
     // Set up info icon for today's dollars explanation
     document.getElementById('discount-info').addEventListener('click', function(e) {
         e.preventDefault();
@@ -62,6 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up calculate button (keep it for accessibility, but it's redundant now)
     document.getElementById('calculate-btn').addEventListener('click', calculateAndDisplay);
 
+    // Initial HOA calculation 
+    const initialCondoPrice = parseFloat(document.getElementById('condo-price').value) || 0;
+    const initialHoaRate = parseFloat(document.getElementById('hoa-rate').value) || 0;
+    const initialMonthlyHoa = initialCondoPrice * (initialHoaRate / 100);
+    document.getElementById('hoa-monthly-display').textContent = `${formatCurrency(initialMonthlyHoa)}/month`;
+    
     // Initial calculation
     updateTodaysDollarsIndicator();
     calculateAndDisplay();
@@ -109,6 +126,12 @@ function calculateAndDisplay() {
         
         // Update the years display
         document.getElementById('analysis-years-display').textContent = params.analysisYears.toString();
+        
+        // Calculate and display the current monthly HOA fee
+        const condoPrice = params.condoPrice;
+        const hoaRate = params.hoaRate;
+        const monthlyHoa = condoPrice * (hoaRate / 100);
+        document.getElementById('hoa-monthly-display').textContent = `${formatCurrency(monthlyHoa)}/month`;
         
         // Update today's dollars indicators
         updateTodaysDollarsIndicator();

@@ -229,6 +229,18 @@ tr:nth-child(even) {
     transform: scale(1.1);
 }
 
+.value-display {
+    padding: 0 5px 0 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 15px;
+    line-height: 1.5;
+    background-color: #f8f8f8;
+    height: 26px;
+    display: flex;
+    align-items: center;
+}
+
 
 .winner {
     font-weight: bold;

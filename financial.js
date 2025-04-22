@@ -353,7 +353,7 @@ function calculateHousingCosts(params) {
         { assumption: 'Mortgage Rate', value: `${mortgageRate}%` },
         { assumption: 'Mortgage Term', value: `${mortgageYears} years` },
         { assumption: 'Property Tax Rate', value: `${propertyTaxRate} per $1000/yr` },
-        { assumption: 'HOA Fee', value: `${hoaRate}%/mo of property value` },
+        { assumption: 'HOA Fee', value: `${hoaRate}%/mo of property value (${formatCurrency(condoPrice * (hoaRate / 100))}/month)` },
         { assumption: 'Homeowners Insurance', value: `${insuranceRate}% of property value/yr` },
         { assumption: 'Rent Increase', value: `${rentIncreaseRate}%/yr` },
         { assumption: 'Federal Tax Rate', value: `${federalTaxRate}%` },
