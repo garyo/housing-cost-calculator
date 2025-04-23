@@ -252,4 +252,379 @@ describe('Financial Calculations', () => {
       expect(Math.abs(result - 1000)).toBeLessThan(epsilon);
     });
   });
+
+  // Test formatCurrency function
+  describe('formatCurrency', () => {
+    test('formats regular currency values', () => {
+      const result = financial.formatCurrency(12345);
+      expect(result).toBe('$12,345');
+    });
+
+    test('formats large values with compact notation', () => {
+      const result = financial.formatCurrency(1500000);
+      // Should compact to something like $1.5M
+      expect(result).toMatch(/^\$1\.50M$/);
+    });
+
+    test('formats negative values', () => {
+      const result = financial.formatCurrency(-5000);
+      expect(result).toBe('-$5,000');
+    });
+  });
+
+  // Test calculateLoanPayments with zero loan amount
+  describe('calculateLoanPayments edge cases', () => {
+    test('zero loan amount', () => {
+      const result = financial.calculateLoanPayments(1, 0, 5, 30);
+      expect(result.loanActive).toBe(false);
+      expect(result.annualPayment).toBe(0);
+      expect(result.annualInterest).toBe(0);
+      expect(result.annualPrincipal).toBe(0);
+    });
+  });
+
+  // Test calculateHousingCosts function
+  describe('calculateHousingCosts', () => {
+    test('basic housing cost calculation', () => {
+      const params = {
+        analysisYears: 1,
+        apartmentRent: 2000,
+        condoPrice: 400000,
+        downPaymentPct: 20,
+        downPaymentSource: 'cash',
+        heatingCost: 100,
+        maintenanceCost: 150,
+        mortgageRate: 4.5,
+        mortgageYears: 30,
+        propertyTaxRate: 10,
+        hoaRate: 0.1,
+        insuranceRate: 0.5,
+        federalTaxRate: 22,
+        stateTaxRate: 5,
+        appreciationRate: 3,
+        rentIncreaseRate: 2,
+        realtorFeePct: 6,
+        capitalGainsRate: 15,
+        discountRate: 3,
+        useTodaysDollars: false
+      };
+
+      const result = financial.calculateHousingCosts(params);
+
+      // Check that the result contains the expected structure
+      expect(result).toHaveProperty('yearlyData');
+      expect(result).toHaveProperty('summaryData');
+      expect(result).toHaveProperty('assumptionsData');
+      expect(result).toHaveProperty('metrics');
+
+      // Check that yearlyData has expected entries
+      expect(result.yearlyData.length).toBe(1);
+      const yearOneData = result.yearlyData[0];
+      
+      // Verify the calculated values are reasonable
+      expect(yearOneData.year).toBe(1);
+      expect(yearOneData.apartmentCost).toBeCloseTo(2000 * 12, -1); // Annual apartment cost
+      expect(yearOneData.propertyValue).toBeGreaterThan(400000); // Should appreciate
+      expect(yearOneData.equity).toBeGreaterThan(80000); // Down payment + some principal
+      
+      // Verify mortgage payments based on a $320,000 loan (after 20% down)
+      const expectedMortgage = financial.calculateMortgagePayment(320000, 4.5, 30) * 12;
+      expect(yearOneData.mortgagePayment).toBeCloseTo(expectedMortgage, -1);
+    });
+
+    test('using an equity loan for down payment', () => {
+      const params = {
+        analysisYears: 1,
+        apartmentRent: 2000,
+        condoPrice: 400000,
+        downPaymentPct: 20,
+        downPaymentSource: 'loan',
+        equityLoanRate: 6,
+        equityLoanYears: 10,
+        heatingCost: 100,
+        maintenanceCost: 150,
+        mortgageRate: 4.5,
+        mortgageYears: 30,
+        propertyTaxRate: 10,
+        hoaRate: 0.1,
+        insuranceRate: 0.5,
+        federalTaxRate: 22,
+        stateTaxRate: 5,
+        appreciationRate: 3,
+        rentIncreaseRate: 2,
+        realtorFeePct: 6,
+        capitalGainsRate: 15,
+        discountRate: 3,
+        useTodaysDollars: false
+      };
+
+      const result = financial.calculateHousingCosts(params);
+      const yearOneData = result.yearlyData[0];
+      
+      // Verify that there's an equity loan payment
+      expect(yearOneData.equityLoanPayment).toBeGreaterThan(0);
+      
+      // Expected down payment = 20% of condo price
+      const downPayment = 400000 * 0.2;
+      
+      // Expected equity loan payment based on a $80,000 loan at 6% for 10 years
+      const expectedMonthlyEquityPayment = financial.calculateMortgagePayment(downPayment, 6, 10);
+      const expectedAnnualEquityPayment = expectedMonthlyEquityPayment * 12;
+      expect(yearOneData.equityLoanPayment).toBeCloseTo(expectedAnnualEquityPayment, -1);
+    });
+
+    test('using stocks for down payment incurs capital gains tax', () => {
+      const params = {
+        analysisYears: 1,
+        apartmentRent: 2000,
+        condoPrice: 400000,
+        downPaymentPct: 20,
+        downPaymentSource: 'stocks',
+        stockGainPct: 50, // 50% of the down payment is capital gains
+        heatingCost: 100,
+        maintenanceCost: 150,
+        mortgageRate: 4.5,
+        mortgageYears: 30,
+        propertyTaxRate: 10,
+        hoaRate: 0.1,
+        insuranceRate: 0.5,
+        federalTaxRate: 22,
+        stateTaxRate: 5,
+        appreciationRate: 3,
+        rentIncreaseRate: 2,
+        realtorFeePct: 6,
+        capitalGainsRate: 15,
+        discountRate: 3,
+        useTodaysDollars: false
+      };
+
+      const result = financial.calculateHousingCosts(params);
+      
+      // Capital gains tax should be reflected in the summary data
+      const capGainsTaxAssumption = result.assumptionsData.find(
+        item => item.assumption === 'Cap Gains Tax on Down Payment'
+      );
+      expect(capGainsTaxAssumption).toBeDefined();
+      
+      // Calculate expected tax: 
+      // downPayment = $80,000, gains = 50% = $40,000, tax = 15% of gains = $6,000
+      const downPayment = 400000 * 0.2;
+      const gains = downPayment * 0.5;
+      const expectedTax = gains * 0.15;
+      
+      // Extract just the number from the formatted currency string
+      const taxValue = parseFloat(capGainsTaxAssumption.value.replace(/[^0-9.-]+/g, ''));
+      expect(taxValue).toBeCloseTo(expectedTax, -1);
+    });
+    
+    test('primary residence exemption reduces capital gains tax', () => {
+      // First scenario: Calculate without primary residence exclusion
+      const baseParams = {
+        analysisYears: 10,
+        apartmentRent: 2000,
+        condoPrice: 400000,
+        downPaymentPct: 20,
+        downPaymentSource: 'cash',
+        heatingCost: 100,
+        maintenanceCost: 150,
+        mortgageRate: 4.5,
+        mortgageYears: 30,
+        propertyTaxRate: 10,
+        hoaRate: 0.1,
+        insuranceRate: 0.5,
+        federalTaxRate: 22,
+        stateTaxRate: 5,
+        appreciationRate: 5, // Higher appreciation to ensure capital gains
+        rentIncreaseRate: 2,
+        realtorFeePct: 6,
+        capitalGainsRate: 15,
+        discountRate: 3,
+        useTodaysDollars: false,
+        isPrimaryResidence: false
+      };
+      
+      const resultWithoutExemption = financial.calculateHousingCosts(baseParams);
+      
+      // Calculate with primary residence exclusion
+      const paramsWithExemption = {
+        ...baseParams,
+        isPrimaryResidence: true
+      };
+      
+      const resultWithExemption = financial.calculateHousingCosts(paramsWithExemption);
+      
+      // Get capital gains tax from each result's summary data
+      const findCapGainsTax = (summaryData) => {
+        const capGainsTaxItem = summaryData.find(item => item.description === 'Capital Gains Tax');
+        return capGainsTaxItem ? capGainsTaxItem.amount : 0;
+      };
+      
+      const capGainsTaxWithoutExemption = findCapGainsTax(resultWithoutExemption.summaryData);
+      const capGainsTaxWithExemption = findCapGainsTax(resultWithExemption.summaryData);
+      
+      // After 10 years with 5% appreciation, we should have significant capital gains
+      expect(capGainsTaxWithoutExemption).toBeGreaterThan(0);
+      
+      // Verify that exemption reduces the tax amount
+      if (capGainsTaxWithoutExemption > 250000 * 0.15) {
+        // If the gains exceed the exemption amount, tax should be reduced but not eliminated
+        expect(capGainsTaxWithExemption).toBeLessThan(capGainsTaxWithoutExemption);
+        expect(capGainsTaxWithExemption).toBeGreaterThan(0);
+      } else {
+        // If the gains are less than the exemption amount, tax should be eliminated
+        expect(capGainsTaxWithExemption).toBe(0);
+      }
+      
+      // Verify that net sale proceeds are higher with exemption
+      const findNetSaleProceeds = (summaryData) => {
+        const item = summaryData.find(item => item.description === 'Net Sale Proceeds');
+        return item ? item.amount : 0;
+      };
+      
+      const proceedsWithoutExemption = findNetSaleProceeds(resultWithoutExemption.summaryData);
+      const proceedsWithExemption = findNetSaleProceeds(resultWithExemption.summaryData);
+      
+      // Net sale proceeds should be higher with the exemption
+      expect(proceedsWithExemption).toBeGreaterThan(proceedsWithoutExemption);
+      
+      // Check that the difference is exactly the tax saved
+      const taxSavings = capGainsTaxWithoutExemption - capGainsTaxWithExemption;
+      expect(proceedsWithExemption - proceedsWithoutExemption).toBeCloseTo(taxSavings, -1);
+    });
+    
+    test('primary residence exemption has no effect when gains under threshold', () => {
+      // Create a scenario with minimal appreciation (thus minimal capital gains)
+      const params = {
+        analysisYears: 2,
+        apartmentRent: 2000,
+        condoPrice: 400000,
+        downPaymentPct: 20,
+        downPaymentSource: 'cash',
+        heatingCost: 100,
+        maintenanceCost: 150,
+        mortgageRate: 4.5,
+        mortgageYears: 30,
+        propertyTaxRate: 10,
+        hoaRate: 0.1,
+        insuranceRate: 0.5,
+        federalTaxRate: 22,
+        stateTaxRate: 5,
+        appreciationRate: 1, // Very low appreciation
+        rentIncreaseRate: 2,
+        realtorFeePct: 6,
+        capitalGainsRate: 15,
+        discountRate: 3,
+        useTodaysDollars: false,
+        isPrimaryResidence: true
+      };
+      
+      const result = financial.calculateHousingCosts(params);
+      
+      // Get property appreciation over 2 years
+      const initialValue = params.condoPrice;
+      const finalValue = financial.annualPropertyValue(initialValue, params.appreciationRate, params.analysisYears);
+      const totalGains = finalValue - initialValue;
+      
+      // Verify the gains are less than the exemption amount
+      expect(totalGains).toBeLessThan(250000);
+      
+      // Verify there's no capital gains tax in the results
+      const capGainsTaxItem = result.summaryData.find(item => item.description === 'Capital Gains Tax');
+      expect(capGainsTaxItem.amount).toBe(0);
+      
+      // Ensure primary residence status is indicated in assumptions
+      const primaryResidenceAssumption = result.assumptionsData.find(
+        item => item.assumption === 'Primary Residence'
+      );
+      expect(primaryResidenceAssumption).toBeDefined();
+      expect(primaryResidenceAssumption.value).toContain('Yes');
+    });
+  });
+
+  // Test generateCostComparison function
+  describe('generateCostComparison', () => {
+    test('generates multi-year cost comparisons', () => {
+      const params = {
+        apartmentRent: 2000,
+        condoPrice: 400000,
+        downPaymentPct: 20,
+        downPaymentSource: 'cash',
+        heatingCost: 100,
+        maintenanceCost: 150,
+        mortgageRate: 4.5,
+        mortgageYears: 30,
+        propertyTaxRate: 10,
+        hoaRate: 0.1,
+        insuranceRate: 0.5,
+        federalTaxRate: 22,
+        stateTaxRate: 5,
+        appreciationRate: 3,
+        rentIncreaseRate: 2,
+        realtorFeePct: 6,
+        capitalGainsRate: 15,
+        discountRate: 3,
+        useTodaysDollars: false
+      };
+
+      const result = financial.generateCostComparison(5, params);
+      
+      // Should return 5 years of data
+      expect(result.length).toBe(5);
+      
+      // Each item should have year, apartment cost, condo cost and property value
+      result.forEach((yearData, index) => {
+        const year = index + 1;
+        expect(yearData.year).toBe(year);
+        expect(yearData).toHaveProperty('apartmentCost');
+        expect(yearData).toHaveProperty('condoCost');
+        expect(yearData).toHaveProperty('finalPropertyValue');
+        
+        // Property value should increase each year due to appreciation
+        if (index > 0) {
+          expect(yearData.finalPropertyValue).toBeGreaterThan(result[index-1].finalPropertyValue);
+        }
+      });
+    });
+
+    test('applies present value discounting when requested', () => {
+      const params = {
+        apartmentRent: 2000,
+        condoPrice: 400000,
+        downPaymentPct: 20,
+        downPaymentSource: 'cash',
+        heatingCost: 100,
+        maintenanceCost: 150,
+        mortgageRate: 4.5,
+        mortgageYears: 30,
+        propertyTaxRate: 10,
+        hoaRate: 0.1,
+        insuranceRate: 0.5,
+        federalTaxRate: 22,
+        stateTaxRate: 5,
+        appreciationRate: 3,
+        rentIncreaseRate: 2,
+        realtorFeePct: 6,
+        capitalGainsRate: 15,
+        discountRate: 5,
+        useTodaysDollars: true
+      };
+
+      const result = financial.generateCostComparison(3, params);
+      const resultWithoutDiscounting = financial.generateCostComparison(3, {
+        ...params,
+        useTodaysDollars: false
+      });
+      
+      // When using present value (today's dollars), the values should be lower
+      // due to the discounting
+      for (let i = 0; i < result.length; i++) {
+        // The values with discounting should be lower than without discounting
+        // especially for later years
+        if (i > 0) { // Year 1 might be close due to minimal discounting
+          expect(result[i].apartmentCost).toBeLessThan(resultWithoutDiscounting[i].apartmentCost);
+          expect(result[i].finalPropertyValue).toBeLessThan(resultWithoutDiscounting[i].finalPropertyValue);
+        }
+      }
+    });
+  });
 });

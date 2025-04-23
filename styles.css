@@ -57,6 +57,32 @@ p {
     margin-bottom: 15px;
 }
 
+.form-group.checkbox-right {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    position: relative;
+}
+
+.form-group.checkbox-right label {
+    flex: 0 0 auto;
+    margin-right: 6px;
+    margin-bottom: 0;
+}
+
+.checkbox-label-description {
+    color: #666;
+    font-size: 0.9em;
+    flex: 1;
+}
+
+.checkbox-container {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 .form-group.hidden {
     opacity: 0;
     max-height: 0;
@@ -72,12 +98,18 @@ label {
     font-weight: 500;
 }
 
-input, select {
+input:not([type="checkbox"]), select {
     width: 100%;
     padding: 2px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 16px;
+}
+
+input[type="checkbox"] {
+    width: auto;
+    margin-left: 8px;
+    cursor: pointer;
 }
 
 button {

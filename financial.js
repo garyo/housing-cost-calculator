@@ -43,6 +43,12 @@ function calculateMonthlyInterestAndPrincipal(principal, annualRate, years, paym
 }
 
 function annualPropertyValue(condoPrice, appreciationRate, year) {
+    // Handle zero or negative appreciation rates properly
+    if (appreciationRate <= 0) {
+        return condoPrice * Math.pow(1 + appreciationRate / 100, year);
+    }
+    
+    // For positive appreciation, use standard compound growth formula
     return condoPrice * Math.pow(1 + appreciationRate / 100, year);
 }
 
@@ -175,7 +181,8 @@ function calculateHousingCosts(params) {
         capitalGainsRate,
         stockGainPct,
         discountRate,
-        useTodaysDollars
+        useTodaysDollars,
+        isPrimaryResidence // New parameter for primary residence status
     } = params;
 
     // Results arrays
@@ -211,6 +218,12 @@ function calculateHousingCosts(params) {
         // Calculate apartment rent for this year
         const annualApartment = apartmentRent * 12 * Math.pow(1 + rentIncreaseRate / 100, year - 1);
 
+        // Adjust heating and maintenance costs for inflation based on years passed
+        // Using a fixed 2% inflation rate for these costs
+        const inflationFactor = Math.pow(1.02, year - 1);
+        const inflationAdjustedHeating = heatingCost * inflationFactor;
+        const inflationAdjustedMaintenance = maintenanceCost * inflationFactor;
+
         // Get the annual costs of owning the condo for this year
         const annualCosts = calculateAnnualCosts(
             year,
@@ -222,8 +235,8 @@ function calculateHousingCosts(params) {
             propertyTaxRate,
             hoaRate,
             insuranceRate,
-            heatingCost,
-            maintenanceCost
+            inflationAdjustedHeating,
+            inflationAdjustedMaintenance
         );
 
         // Calculate equity loan payments for this year if applicable
@@ -261,13 +274,26 @@ function calculateHousingCosts(params) {
         // Mortgage interest deduction limit - interest on up to $750,000 of acquisition debt
         const mortgageInterestDeductionLimit = 750000;
         
-        // Limit deductible property tax (part of SALT)
-        const deductiblePropertyTax = Math.min(annualCosts.annualPropertyTax, saltDeductionLimit);
+        // Calculate estimated state income tax (rough approximation, this would typically depend on income)
+        // We'll use a rough estimate based on a percentage of the mortgage/property costs as a proxy for income level
+        const approximateIncome = (annualCosts.annualMortgage + annualCosts.annualPropertyTax) * 4; // Rough estimate
+        const estimatedStateIncomeTax = approximateIncome * (stateTaxRate / 100);
         
-        // Limit mortgage interest deduction based on original loan amount
-        const mortgageDeductionRatio = loanAmount <= mortgageInterestDeductionLimit ? 
-            1.0 : mortgageInterestDeductionLimit / loanAmount;
-        const deductibleMortgageInterest = annualCosts.annualInterest * mortgageDeductionRatio;
+        // Apply SALT deduction limit to COMBINED state income tax and property tax
+        const totalStateLocalTaxes = estimatedStateIncomeTax + annualCosts.annualPropertyTax;
+        const deductiblePropertyTax = Math.min(totalStateLocalTaxes, saltDeductionLimit);
+        
+        // Fix mortgage interest deduction calculation for loans over $750,000
+        let deductibleMortgageInterest;
+        if (loanAmount <= mortgageInterestDeductionLimit) {
+            // If loan is under the limit, all interest is deductible
+            deductibleMortgageInterest = annualCosts.annualInterest;
+        } else {
+            // Only interest on the first $750K is deductible - pro-rate based on remaining balances
+            // This is an approximation - a truly accurate calculation would track separate balances
+            const nonDeductiblePortion = Math.max(0, (remainingPrincipal - mortgageInterestDeductionLimit) / remainingPrincipal);
+            deductibleMortgageInterest = annualCosts.annualInterest * (1 - nonDeductiblePortion);
+        }
         
         // Note: loan interest for down payment is not tax deductible
         const deductibleAmount = deductibleMortgageInterest + deductiblePropertyTax;
@@ -283,9 +309,9 @@ function calculateHousingCosts(params) {
             equityLoanPayments.annualPayment -
             annualTaxSavings;
 
-        // Property value and equity
+        // Property value and equity (prevent negative equity)
         const propertyValue = annualPropertyValue(condoPrice, appreciationRate, year);
-        const equityBuilt = propertyValue - remainingPrincipal - remainingEquityLoanPrincipal;
+        const equityBuilt = Math.max(0, propertyValue - remainingPrincipal - remainingEquityLoanPrincipal);
 
         // Add to yearly data array
         yearlyData.push({
@@ -310,8 +336,20 @@ function calculateHousingCosts(params) {
     // Final year calculations
     const finalPropertyValue = annualPropertyValue(condoPrice, appreciationRate, analysisYears);
     const realtorFees = finalPropertyValue * (realtorFeePct / 100);
+    
+    // Calculate capital gains tax, applying primary residence exclusion if applicable
     const capitalGains = Math.max(0, finalPropertyValue - condoPrice);
-    const capitalGainsTax = capitalGains * (capitalGainsRate / 100);
+    let taxableCapitalGains = capitalGains;
+    
+    // Apply primary residence exclusion if enabled
+    // Standard exclusion is $250,000 for single, $500,000 for married filing jointly
+    // We'll use $250,000 as a default exclusion amount
+    if (isPrimaryResidence && capitalGains > 0) {
+        const primaryResidenceExclusion = 250000;
+        taxableCapitalGains = Math.max(0, capitalGains - primaryResidenceExclusion);
+    }
+    
+    const capitalGainsTax = taxableCapitalGains * (capitalGainsRate / 100);
     const netSaleProceeds = finalPropertyValue - realtorFees - capitalGainsTax - remainingPrincipal - remainingEquityLoanPrincipal;
 
     // Store the sale-related amounts for year-specific calculations
@@ -369,8 +407,8 @@ function calculateHousingCosts(params) {
         { assumption: 'Mortgage Term', value: `${mortgageYears} years` },
         { assumption: 'Property Tax Rate', value: `${propertyTaxRate} per $1000/yr` },
         { assumption: 'HOA Fee', value: `${hoaRate}%/mo of property value (${formatCurrency(condoPrice * (hoaRate / 100))}/month)` },
-        { assumption: 'Heating Cost', value: `${formatCurrency(heatingCost)}/month` },
-        { assumption: 'Maintenance Cost', value: `${formatCurrency(maintenanceCost)}/month` },
+        { assumption: 'Heating Cost', value: `${formatCurrency(heatingCost)}/month (with 2% annual inflation)` },
+        { assumption: 'Maintenance Cost', value: `${formatCurrency(maintenanceCost)}/month (with 2% annual inflation)` },
         { assumption: 'Homeowners Insurance', value: `${insuranceRate}% of property value/yr` },
         { assumption: 'Rent Increase', value: `${rentIncreaseRate}%/yr` },
         { assumption: 'Federal Tax Rate', value: `${federalTaxRate}%` },
@@ -379,7 +417,8 @@ function calculateHousingCosts(params) {
         { assumption: 'Mortgage Interest Deduction Limit', value: `Interest on up to ${formatCurrency(750000)}` },
         { assumption: 'Appreciation', value: `${appreciationRate}%/yr` },
         { assumption: 'Realtor Fee', value: `${realtorFeePct}%` },
-        { assumption: 'Capital Gains Tax', value: `${capitalGainsRate}%` }
+        { assumption: 'Primary Residence', value: isPrimaryResidence ? 'Yes (eligible for capital gains exclusion)' : 'No' },
+        { assumption: 'Capital Gains Tax', value: `${capitalGainsRate}%${isPrimaryResidence ? ' (after $250K exclusion)' : ''}` }
     ];
 
     // Metrics data

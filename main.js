@@ -21,6 +21,7 @@ const paramToElementMap = {
     'rentIncreaseRate': 'rent-increase',
     'realtorFeePct': 'realtor-fee',
     'capitalGainsRate': 'capital-gains',
+    'isPrimaryResidence': 'primary-residence',
     'discountRate': 'discount-rate',
     'useTodaysDollars': 'today-dollars-toggle'
 };

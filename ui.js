@@ -377,6 +377,9 @@ function getParameters() {
         if (isNaN(capitalGainsRate) || capitalGainsRate < 0 || capitalGainsRate > 100) throw new Error('Capital gains rate must be between 0 and 100%');
         if (isNaN(discountRate) || discountRate < 0 || discountRate > 20) throw new Error('Discount rate must be between 0 and 20%');
 
+        // Get primary residence status
+        const isPrimaryResidence = document.getElementById('primary-residence').checked;
+
         return {
             analysisYears,
             apartmentRent,
@@ -400,7 +403,8 @@ function getParameters() {
             capitalGainsRate,
             stockGainPct,
             discountRate,
-            useTodaysDollars
+            useTodaysDollars,
+            isPrimaryResidence
         };
     } catch (error) {
         document.getElementById('error-alert').textContent = error.message;
