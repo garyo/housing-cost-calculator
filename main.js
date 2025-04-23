@@ -1,3 +1,6 @@
+// Define app version - automatically updated by git hooks
+const APP_VERSION = '1.0.0';
+
 // Define parameter to element ID mapping at the global level
 const paramToElementMap = {
     'analysisYears': 'analysis-years',
@@ -28,6 +31,9 @@ const paramToElementMap = {
 
 // Initialize tabs and set up auto-calculation
 document.addEventListener('DOMContentLoaded', () => {
+    // Display version in About tab
+    displayVersion();
+    
     // Set up tab navigation
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', function() {

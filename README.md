@@ -21,6 +21,21 @@ Live version is at https://housing-cost-calculator.pages.dev/, using Cloudflare 
 
 You can just open `index.html` in a browser. No server needed.
 
+### Version Handling
+
+The app uses automatic version numbering that increments with each commit:
+
+1. The version number is displayed in the About tab
+2. To manually set a specific version, use:
+   ```
+   ./bump-version.sh 1.2.3
+   ```
+3. To automatically increment the patch version:
+   ```
+   ./bump-version.sh
+   ```
+4. A git pre-commit hook is set up to run the version bump script automatically before each commit
+
 ### Testing
 
 The project uses Jest for unit testing the financial calculations. To run the tests using `bun`:

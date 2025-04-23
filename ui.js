@@ -328,6 +328,14 @@ function createChart(data) {
     });
 }
 
+// Add version display to the About tab
+function displayVersion() {
+  const versionString = document.createElement('p');
+  versionString.classList.add('version');
+  versionString.textContent = `Version: ${APP_VERSION}`;
+  document.getElementById('about-tab').appendChild(versionString);
+}
+
 function getParameters() {
     try {
         const analysisYears = parseInt(document.getElementById('analysis-years').value);
