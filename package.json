@@ -3,8 +3,15 @@
   "version": "1.0.0",
   "description": "A calculator to compare costs of renting vs. buying housing",
   "scripts": {
-    "test": "echo \"No tests configured\""
+    "test": "jest"
   },
   "author": "Gary Oberbrunner",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/*.test.js"]
+  }
 }
