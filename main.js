@@ -1,3 +1,30 @@
+// Define parameter to element ID mapping at the global level
+const paramToElementMap = {
+    'analysisYears': 'analysis-years',
+    'apartmentRent': 'apartment-rent',
+    'condoPrice': 'condo-price',
+    'downPaymentPct': 'down-payment',
+    'downPaymentSource': 'down-payment-source',
+    'heatingCost': 'heating-cost',
+    'maintenanceCost': 'maintenance-cost',
+    'stockGainPct': 'stock-gain',
+    'equityLoanRate': 'equity-loan-rate',
+    'equityLoanYears': 'equity-loan-term',
+    'mortgageRate': 'mortgage-rate',
+    'mortgageYears': 'mortgage-years',
+    'propertyTaxRate': 'property-tax',
+    'hoaRate': 'hoa-rate',
+    'insuranceRate': 'insurance-rate',
+    'federalTaxRate': 'federal-tax',
+    'stateTaxRate': 'state-tax',
+    'appreciationRate': 'appreciation',
+    'rentIncreaseRate': 'rent-increase',
+    'realtorFeePct': 'realtor-fee',
+    'capitalGainsRate': 'capital-gains',
+    'discountRate': 'discount-rate',
+    'useTodaysDollars': 'today-dollars-toggle'
+};
+
 // Initialize tabs and set up auto-calculation
 document.addEventListener('DOMContentLoaded', () => {
     // Set up tab navigation
@@ -10,6 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add active class to clicked tab
             this.classList.add('active');
             document.getElementById(`${this.dataset.tab}-tab`).classList.add('active');
+            
+            // Remember active tab for next visit
+            localStorage.setItem('activeTab', this.dataset.tab);
         });
     });
     
@@ -51,16 +81,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Set up all input elements to trigger calculation on change (no more often than every 100ms)
+    // Function to save all settings to localStorage
+    function saveSettingsToLocalStorage() {
+        const params = getParameters();
+        localStorage.setItem('housingCalculatorSettings', JSON.stringify(params));
+    }
+    
+    // Function to load settings from localStorage
+    function loadSettingsFromLocalStorage() {
+        const savedSettings = localStorage.getItem('housingCalculatorSettings');
+        if (!savedSettings) return false;
+        
+        try {
+            const params = JSON.parse(savedSettings);
+            
+            // Update all form inputs with saved values
+            Object.keys(params).forEach(key => {
+                const elementId = paramToElementMap[key] || key;
+                const element = document.getElementById(elementId);
+                
+                if (element) {
+                    if (element.type === 'checkbox') {
+                        element.checked = params[key];
+                    } else {
+                        element.value = params[key];
+                    }
+                    // Trigger change events to update any dependent UI
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+            
+            return true;
+        } catch (error) {
+            console.error('Error loading settings:', error);
+            return false;
+        }
+    }
+    
+    // Set up all input elements to trigger calculation and save settings
     const inputElements = document.querySelectorAll('input, select');
     inputElements.forEach(input => {
-        input.addEventListener('input', debounce(calculateAndDisplay, 100));
+        input.addEventListener('input', debounce(() => {
+            calculateAndDisplay();
+            saveSettingsToLocalStorage();
+        }, 100));
     });
 
-    // Set up today's dollars toggle
+    // Set up today's dollars toggle with localStorage saving
     document.getElementById('today-dollars-toggle').addEventListener('change', function() {
         updateTodaysDollarsIndicator(); // Update indicators immediately
         calculateAndDisplay();
+        saveSettingsToLocalStorage();
     });
     
     // Also watch for changes to the discount rate
@@ -70,16 +142,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Set up calculate button (keep it for accessibility, but it's redundant now)
-    document.getElementById('calculate-btn').addEventListener('click', calculateAndDisplay);
-
-    // Initial HOA calculation 
+    // Load settings from local storage
+    const settingsLoaded = loadSettingsFromLocalStorage();
+    
+    // Update HOA display with current values
     const initialCondoPrice = parseFloat(document.getElementById('condo-price').value) || 0;
     const initialHoaRate = parseFloat(document.getElementById('hoa-rate').value) || 0;
     const initialMonthlyHoa = initialCondoPrice * (initialHoaRate / 100);
     document.getElementById('hoa-monthly-display').textContent = `${formatCurrency(initialMonthlyHoa)}/month`;
     
-    // Initial calculation
+    // Restore previously active tab
+    const activeTab = localStorage.getItem('activeTab');
+    if (activeTab) {
+        const tabElement = document.querySelector(`.tab[data-tab="${activeTab}"]`);
+        if (tabElement) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            // Activate the saved tab
+            tabElement.classList.add('active');
+            const tabContentElement = document.getElementById(`${activeTab}-tab`);
+            if (tabContentElement) {
+                tabContentElement.classList.add('active');
+            }
+        }
+    }
+    
+    // Initial calculation (if not already done by loadSettings)
     updateTodaysDollarsIndicator();
     calculateAndDisplay();
 });
@@ -259,33 +349,6 @@ function saveParamsToURL() {
     const params = getParameters();
     const queryParams = new URLSearchParams();
 
-    // Create a mapping between parameter names and element IDs
-    const paramToElementMap = {
-        'analysisYears': 'analysis-years',
-        'apartmentRent': 'apartment-rent',
-        'condoPrice': 'condo-price',
-        'downPaymentPct': 'down-payment',
-        'downPaymentSource': 'down-payment-source',
-        'heatingCost': 'heating-cost',
-        'maintenanceCost': 'maintenance-cost',
-        'stockGainPct': 'stock-gain',
-        'equityLoanRate': 'equity-loan-rate',
-        'equityLoanYears': 'equity-loan-term',
-        'mortgageRate': 'mortgage-rate',
-        'mortgageYears': 'mortgage-years',
-        'propertyTaxRate': 'property-tax',
-        'hoaRate': 'hoa-rate',
-        'insuranceRate': 'insurance-rate',
-        'federalTaxRate': 'federal-tax',
-        'stateTaxRate': 'state-tax',
-        'appreciationRate': 'appreciation',
-        'rentIncreaseRate': 'rent-increase',
-        'realtorFeePct': 'realtor-fee',
-        'capitalGainsRate': 'capital-gains',
-        'discountRate': 'discount-rate',
-        'useTodaysDollars': 'today-dollars-toggle'
-    };
-
     // Add all parameters to the URL using element IDs
     Object.keys(params).forEach(key => {
         const elementId = paramToElementMap[key] || key;
@@ -340,6 +403,10 @@ function resetCalculator() {
     // Remove URL parameters
     const newURL = window.location.pathname;
     window.history.pushState({ path: newURL }, '', newURL);
+    
+    // Clear localStorage
+    localStorage.removeItem('housingCalculatorSettings');
+    localStorage.removeItem('activeTab');
 
     // Reset all form elements to their default values
     const form = document.querySelector('.input-panel');
@@ -379,20 +446,17 @@ function resetCalculator() {
 }
 
 
-// Add save & reset buttons to the form
+// Add buttons for URL saving and resetting
 function addSaveResetButtons() {
-    const calculateButton = document.getElementById('calculate-btn');
-    const container = calculateButton.parentNode;
+    // Find the button container div
+    const container = document.getElementById('button-container');
+    if (!container) return;
 
-    // Create button container for better styling
+    // Create button container for styling
     const buttonContainer = document.createElement('div');
     buttonContainer.style.display = 'flex';
     buttonContainer.style.gap = '10px';
     buttonContainer.style.marginTop = '15px';
-
-    // Move calculate button to container
-    container.removeChild(calculateButton);
-    buttonContainer.appendChild(calculateButton);
 
     // Create save button
     const saveButton = document.createElement('button');
@@ -411,7 +475,7 @@ function addSaveResetButtons() {
     // Create reset button
     const resetButton = document.createElement('button');
     resetButton.id = 'reset-btn';
-    resetButton.textContent = 'Reset';
+    resetButton.textContent = 'Reset All';
 
     // Style reset button differently (optional)
     resetButton.style.backgroundColor = '#d9534f'; // Bootstrap danger red
