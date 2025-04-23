@@ -146,22 +146,22 @@ function calculateAndDisplay() {
             { field: 'year', header: 'Year' },
             {
               field: 'apartmentCost',
-              header: 'Apt Rent',
+              header: 'Rent',
               format: (value) => formatCurrency(value)
             },
             {
               field: 'mortgagePayment',
-              header: 'Mortgage Payment',
+              header: 'Mortgage',
               format: (value) => formatCurrency(value)
             },
             params.downPaymentSource === 'loan' ? {
               field: 'equityLoanPayment',
-              header: 'Loan Pmt',
+              header: 'Loan',
               format: (value) => formatCurrency(value)
             } : null,
             {
               field: 'propertyTax',
-              header: 'Property Tax',
+              header: 'Tax',
               format: (value) => formatCurrency(value)
             },
             {
@@ -171,7 +171,17 @@ function calculateAndDisplay() {
             },
             {
               field: 'insurance',
-              header: 'Insurance',
+              header: 'Insur',
+              format: (value) => formatCurrency(value)
+            },
+            {
+              field: 'heating',
+              header: 'Heat',
+              format: (value) => formatCurrency(value)
+            },
+            {
+              field: 'maintenance',
+              header: 'Maint',
               format: (value) => formatCurrency(value)
             },
             {
@@ -181,12 +191,12 @@ function calculateAndDisplay() {
             },
             {
               field: 'netCondoCost',
-              header: 'Net Condo Cost',
+              header: 'Net Condo Cst',
               format: (value) => formatCurrency(value)
             },
             {
               field: 'propertyValue',
-              header: 'Property Value',
+              header: 'Prop Value',
               format: (value) => formatCurrency(value)
             },
             {
@@ -196,12 +206,12 @@ function calculateAndDisplay() {
             },
             {
               field: 'remainingMortgage',
-              header: 'Remaining Mortgage',
+              header: 'Rem Mortg',
               format: (value) => formatCurrency(value)
             },
             params.downPaymentSource === 'loan' ? {
               field: 'remainingEquityLoan',
-              header: 'Remaining Loan',
+              header: 'Rem Loan',
               format: (value) => formatCurrency(value)
             } : null
           ].filter(Boolean),  // Filter out null columns
@@ -256,6 +266,8 @@ function saveParamsToURL() {
         'condoPrice': 'condo-price',
         'downPaymentPct': 'down-payment',
         'downPaymentSource': 'down-payment-source',
+        'heatingCost': 'heating-cost',
+        'maintenanceCost': 'maintenance-cost',
         'stockGainPct': 'stock-gain',
         'equityLoanRate': 'equity-loan-rate',
         'equityLoanYears': 'equity-loan-term',

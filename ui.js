@@ -15,7 +15,21 @@ function createTable(data, columns, containerId) {
     const headerRow = document.createElement('tr');
     columns.forEach(column => {
         const th = document.createElement('th');
-        th.textContent = column.header;
+        // For yearly table, wrap headers in divs to support rotation
+        if (containerId === 'yearly-table-container') {
+            const div = document.createElement('div');
+            div.textContent = column.header;
+            
+            // Don't rotate Year column
+            if (column.header === 'Year') {
+                th.classList.add('no-rotate');
+                div.classList.add('no-rotate-div');
+            }
+            
+            th.appendChild(div);
+        } else {
+            th.textContent = column.header;
+        }
         headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -321,6 +335,8 @@ function getParameters() {
         const condoPrice = parseFloat(document.getElementById('condo-price').value);
         const downPaymentPct = parseFloat(document.getElementById('down-payment').value);
         const downPaymentSource = document.getElementById('down-payment-source').value;
+        const heatingCost = parseFloat(document.getElementById('heating-cost').value);
+        const maintenanceCost = parseFloat(document.getElementById('maintenance-cost').value);
         const equityLoanRate = parseFloat(document.getElementById('equity-loan-rate').value);
         const equityLoanYears = parseInt(document.getElementById('equity-loan-term').value);
         const mortgageRate = parseFloat(document.getElementById('mortgage-rate').value);
@@ -344,6 +360,8 @@ function getParameters() {
         if (isNaN(apartmentRent) || apartmentRent < 0) throw new Error('Apartment rent must be a non-negative number');
         if (isNaN(condoPrice) || condoPrice <= 0) throw new Error('Condo price must be a positive number');
         if (isNaN(downPaymentPct) || downPaymentPct < 0 || downPaymentPct > 100) throw new Error('Down payment must be between 0 and 100%');
+        if (isNaN(heatingCost) || heatingCost < 0) throw new Error('Heating cost must be a non-negative number');
+        if (isNaN(maintenanceCost) || maintenanceCost < 0) throw new Error('Maintenance cost must be a non-negative number');
         if (isNaN(equityLoanRate) || equityLoanRate < 0) throw new Error('Loan rate must be a non-negative number');
         if (isNaN(mortgageRate) || mortgageRate < 0) throw new Error('Mortgage rate must be a non-negative number');
         if (isNaN(mortgageYears) || mortgageYears <= 0) throw new Error('Mortgage term must be a positive number');
@@ -365,6 +383,8 @@ function getParameters() {
             condoPrice,
             downPaymentPct,
             downPaymentSource,
+            heatingCost,
+            maintenanceCost,
             equityLoanRate,
             equityLoanYears,
             mortgageRate,

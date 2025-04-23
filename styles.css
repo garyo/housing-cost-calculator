@@ -102,7 +102,7 @@ table {
 }
 
 th, td {
-    padding: 12px;
+    padding: 8px;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
 }
@@ -110,6 +110,84 @@ th, td {
 th {
     background-color: var(--secondary-color);
     font-weight: 600;
+}
+
+/* Special styles for yearly breakdown table */
+#yearly-table-container {
+    overflow-x: auto;
+}
+
+#yearly-table-container table {
+    font-size: 0.85em;
+    table-layout: fixed;
+    border-collapse: collapse;
+    min-width: 100%;
+    width: auto;
+}
+
+#yearly-table-container th, 
+#yearly-table-container td {
+    padding: 5px 5px;
+    border: 1px solid #eee;
+}
+
+#yearly-table-container th {
+    height: 100px;
+    white-space: nowrap;
+    vertical-align: bottom;
+    position: relative;
+}
+
+#yearly-table-container th > div {
+    transform: rotate(-45deg);
+    transform-origin: left bottom;
+    width: 40px;
+    position: absolute;
+    left: 8px;
+    bottom: 15px;
+    font-size: 0.9em;
+    padding-left: 5px;
+}
+
+/* Special styling for non-rotated columns (Year and Net Cost) */
+#yearly-table-container th.no-rotate {
+    height: auto;
+    width: auto;
+    vertical-align: middle;
+}
+
+#yearly-table-container th.no-rotate div.no-rotate-div {
+    transform: none;
+    width: auto;
+    position: static;
+    font-weight: bold;
+}
+
+/* Fixed width for number columns */
+#yearly-table-container td {
+    width: 100px;
+    white-space: nowrap;
+    text-align: right;
+    overflow: visible; /* Allow content to overflow if needed */
+}
+
+/* Year column alignment */
+#yearly-table-container td:first-child {
+    text-align: center;
+    width: 50px;
+}
+
+/* Property Value and Equity columns - wider for larger numbers */
+#yearly-table-container td:nth-child(10),
+#yearly-table-container td:nth-child(11),
+#yearly-table-container td:nth-child(12) {
+    width: 110px;
+}
+
+/* Remaining mortgage columns - wider for larger numbers */
+#yearly-table-container td:nth-child(13),
+#yearly-table-container td:nth-child(14) {
+    width: 110px;
 }
 
 tr:nth-child(even) {

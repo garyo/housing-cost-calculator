@@ -105,7 +105,8 @@ function calculateLoanPayments(year, loanAmount, annualRate, loanYears) {
 }
 
 function calculateAnnualCosts(year, loanAmount, mortgageRate, mortgageYears,
-                             condoPrice, appreciationRate, propertyTaxRate, hoaRate, insuranceRate) {
+                             condoPrice, appreciationRate, propertyTaxRate, hoaRate, insuranceRate,
+                             heatingCost, maintenanceCost) {
     // Determine property value this year
     const currentPropertyValue = annualPropertyValue(condoPrice, appreciationRate, year);
 
@@ -121,6 +122,10 @@ function calculateAnnualCosts(year, loanAmount, mortgageRate, mortgageYears,
     
     // Homeowners insurance is a percentage per YEAR of the current property value
     const annualInsurance = currentPropertyValue * (insuranceRate / 100);
+    
+    // Heating and maintenance costs are fixed monthly amounts
+    const annualHeating = heatingCost * 12;
+    const annualMaintenance = maintenanceCost * 12;
 
     return {
         annualInterest: mortgagePayments.annualInterest,
@@ -129,6 +134,8 @@ function calculateAnnualCosts(year, loanAmount, mortgageRate, mortgageYears,
         annualPropertyTax,
         annualHoa,
         annualInsurance,
+        annualHeating,
+        annualMaintenance,
         mortgageActive: mortgagePayments.loanActive
     };
 }
@@ -151,6 +158,8 @@ function calculateHousingCosts(params) {
         condoPrice,
         downPaymentPct,
         downPaymentSource,
+        heatingCost,
+        maintenanceCost,
         equityLoanRate,
         equityLoanYears,
         mortgageRate,
@@ -212,7 +221,9 @@ function calculateHousingCosts(params) {
             appreciationRate,
             propertyTaxRate,
             hoaRate,
-            insuranceRate
+            insuranceRate,
+            heatingCost,
+            maintenanceCost
         );
 
         // Calculate equity loan payments for this year if applicable
@@ -267,6 +278,8 @@ function calculateHousingCosts(params) {
             annualCosts.annualPropertyTax +
             annualCosts.annualHoa +
             annualCosts.annualInsurance +
+            annualCosts.annualHeating +
+            annualCosts.annualMaintenance +
             equityLoanPayments.annualPayment -
             annualTaxSavings;
 
@@ -283,6 +296,8 @@ function calculateHousingCosts(params) {
             propertyTax: annualCosts.annualPropertyTax,
             hoa: annualCosts.annualHoa,
             insurance: annualCosts.annualInsurance,
+            heating: annualCosts.annualHeating,
+            maintenance: annualCosts.annualMaintenance,
             taxSavings: annualTaxSavings,
             netCondoCost,
             propertyValue,
@@ -354,6 +369,8 @@ function calculateHousingCosts(params) {
         { assumption: 'Mortgage Term', value: `${mortgageYears} years` },
         { assumption: 'Property Tax Rate', value: `${propertyTaxRate} per $1000/yr` },
         { assumption: 'HOA Fee', value: `${hoaRate}%/mo of property value (${formatCurrency(condoPrice * (hoaRate / 100))}/month)` },
+        { assumption: 'Heating Cost', value: `${formatCurrency(heatingCost)}/month` },
+        { assumption: 'Maintenance Cost', value: `${formatCurrency(maintenanceCost)}/month` },
         { assumption: 'Homeowners Insurance', value: `${insuranceRate}% of property value/yr` },
         { assumption: 'Rent Increase', value: `${rentIncreaseRate}%/yr` },
         { assumption: 'Federal Tax Rate', value: `${federalTaxRate}%` },
@@ -442,6 +459,18 @@ function generateCostComparison(maxYears, params) {
 
 // Utility function for formatting currency
 function formatCurrency(value) {
+    // For large values (over 1 million), use compact notation
+    if (Math.abs(value) >= 1000000) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            notation: 'compact',
+            compactDisplay: 'short',
+            maximumFractionDigits: 2
+        }).format(value);
+    }
+    
+    // For normal values, use standard formatting
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',

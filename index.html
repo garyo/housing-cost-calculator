@@ -43,6 +43,16 @@
             <input type="number" id="down-payment" value="20" min="0" max="100" step="1">
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="heating-cost">Heating Cost ($/month)</label>
+            <input type="number" id="heating-cost" value="120" min="0" step="5">
+          </div>
+          <div class="form-group half">
+            <label for="maintenance-cost">Maintenance ($/month)</label>
+            <input type="number" id="maintenance-cost" value="150" min="0" step="5">
+          </div>
+        </div>
         <div class="form-group">
           <label for="down-payment-source">Down Payment Source</label>
           <select id="down-payment-source">
@@ -191,7 +201,7 @@
           <p>Each option has different financial implications, and the calculator shows how these choices affect the economics of homeownership over time.</p>
 
           <h4>Annual Ownership Costs</h4>
-          <p>Beyond mortgage payments, we account for property taxes (calculated as a rate per $1,000 of property value) and HOA fees (calculated as a percentage of property value per month). These expenses typically increase as the property appreciates.</p>
+          <p>Beyond mortgage payments, we account for property taxes (calculated as a rate per $1,000 of property value) and HOA fees (calculated as a percentage of property value per month). These expenses typically increase as the property appreciates. Additionally, we include fixed monthly costs for heating and maintenance (such as repairs, plumbing, appliances, etc.) that are not covered by HOA fees.</p>
 
           <h4>Tax Benefits</h4>
           <p>The calculator includes tax savings from deducting mortgage interest and property taxes based on your combined federal and state marginal tax rates, subject to current tax law limitations:</p>
