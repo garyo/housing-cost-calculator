@@ -310,7 +310,12 @@ function calculateAndDisplay() {
               field: 'remainingEquityLoan',
               header: 'Rem Loan',
               format: (value) => formatCurrency(value)
-            } : null
+            } : null,
+            {
+              field: 'irr',
+              header: 'IRR',
+              format: (value) => formatPercentOrRatio(value, true)
+            }
           ].filter(Boolean),  // Filter out null columns
         'yearly-table-container'
       );

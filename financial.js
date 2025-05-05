@@ -13,6 +13,67 @@ function calculateMortgagePayment(principal, annualRate, years) {
            (Math.pow(1 + monthlyRate, numPayments) - 1);
 }
 
+/**
+ * Calculate Internal Rate of Return (IRR) for real estate investment
+ * @param {Array} cashFlows - Array of cash flows, starting with the initial investment (negative)
+ * @returns {number} The IRR as a percentage
+ */
+function calculateIRR(cashFlows) {
+    // IRR cannot be calculated with all-positive or all-negative cash flows
+    let hasPositive = false;
+    let hasNegative = false;
+    
+    for (const flow of cashFlows) {
+        if (flow > 0) hasPositive = true;
+        if (flow < 0) hasNegative = true;
+        if (hasPositive && hasNegative) break;
+    }
+    
+    if (!hasPositive || !hasNegative) {
+        return NaN;
+    }
+    
+    // Newton-Raphson method to find IRR
+    const maxIterations = 1000;
+    const tolerance = 0.000001;
+    
+    let guess = 0.1; // Initial guess (10%)
+    
+    for (let i = 0; i < maxIterations; i++) {
+        let npv = 0;
+        let derivative = 0;
+        
+        for (let j = 0; j < cashFlows.length; j++) {
+            const flow = cashFlows[j];
+            const denominator = Math.pow(1 + guess, j);
+            
+            npv += flow / denominator;
+            derivative -= j * flow / Math.pow(1 + guess, j + 1);
+        }
+        
+        // Break if NPV is close enough to zero
+        if (Math.abs(npv) < tolerance) {
+            return guess * 100; // Convert to percentage
+        }
+        
+        // Avoid division by zero or very small derivative
+        if (Math.abs(derivative) < tolerance) {
+            break;
+        }
+        
+        // Update guess using Newton-Raphson formula
+        guess = guess - npv / derivative;
+        
+        // Check for non-convergence or invalid results
+        if (guess < -1 || isNaN(guess) || !isFinite(guess)) {
+            return NaN;
+        }
+    }
+    
+    // Return as percentage
+    return guess * 100;
+}
+
 function calculateMonthlyInterestAndPrincipal(principal, annualRate, years, paymentNumber) {
     const payment = calculateMortgagePayment(principal, annualRate, years);
     
@@ -213,6 +274,9 @@ function calculateHousingCosts(params) {
     let totalMortgagePaid = 0;
     let totalEquityLoanPaid = 0;
 
+    // Calculate initial expenses (down payment and any taxes on it)
+    const initialExpenses = (useEquityLoan ? 0 : downPayment) + capGainsTaxOnDownPayment;
+
     // Year-by-year calculation
     for (let year = 1; year <= analysisYears; year++) {
         // Calculate apartment rent for this year
@@ -313,6 +377,49 @@ function calculateHousingCosts(params) {
         const propertyValue = annualPropertyValue(condoPrice, appreciationRate, year);
         const equityBuilt = Math.max(0, propertyValue - remainingPrincipal - remainingEquityLoanPrincipal);
 
+        // Calculate investment metrics
+
+        // Calculate yearly IRR - what would the IRR be if we sold at this point
+        const yearIRRCashFlows = [];
+        
+        // Initial investment (negative cash flow)
+        yearIRRCashFlows.push(-initialExpenses);
+        
+        // Add all cash flows up to the current year
+        for (let i = 0; i < year; i++) {
+            // For past years, use the actual yearlyData we've already calculated
+            if (i < yearlyData.length) {
+                yearIRRCashFlows.push(-yearlyData[i].netCondoCost);
+            } else {
+                // For the current year
+                yearIRRCashFlows.push(-netCondoCost);
+            }
+        }
+        
+        // Add potential sale proceeds for the final cash flow in this year
+        const currentSaleValue = propertyValue;
+        const currentRealtorFees = currentSaleValue * (realtorFeePct / 100);
+        
+        // Calculate capital gains tax for current year
+        const currentCapitalGains = Math.max(0, currentSaleValue - condoPrice);
+        let currentTaxableCapitalGains = currentCapitalGains;
+        
+        // Apply primary residence exclusion if applicable
+        if (isPrimaryResidence && currentCapitalGains > 0) {
+            const primaryResidenceExclusion = 250000;
+            currentTaxableCapitalGains = Math.max(0, currentCapitalGains - primaryResidenceExclusion);
+        }
+        
+        const currentCapitalGainsTax = currentTaxableCapitalGains * (capitalGainsRate / 100);
+        const currentNetSaleProceeds = currentSaleValue - currentRealtorFees - currentCapitalGainsTax - 
+                                       remainingPrincipal - remainingEquityLoanPrincipal;
+        
+        // Adjust the last cash flow to include the potential sale proceeds
+        yearIRRCashFlows[yearIRRCashFlows.length - 1] += currentNetSaleProceeds;
+        
+        // Calculate the yearly IRR
+        const yearIrr = calculateIRR(yearIRRCashFlows);
+        
         // Add to yearly data array
         yearlyData.push({
             year,
@@ -329,7 +436,8 @@ function calculateHousingCosts(params) {
             propertyValue,
             equity: equityBuilt,
             remainingMortgage: remainingPrincipal,
-            remainingEquityLoan: remainingEquityLoanPrincipal
+            remainingEquityLoan: remainingEquityLoanPrincipal,
+            irr: yearIrr, // Add IRR for this year
         });
     }
 
@@ -365,15 +473,29 @@ function calculateHousingCosts(params) {
     // Calculate total costs over entire period
     const totalApartmentCost = yearlyData.reduce((sum, data) => sum + data.apartmentCost, 0);
 
-    // Calculate initial expenses (down payment and any taxes on it)
-    const initialExpenses = (useEquityLoan ? 0 : downPayment) + // Add down payment for cash and stocks
-                           capGainsTaxOnDownPayment; // Capital gains tax only for stocks
-
     // When calculating total cost, only add down payment when using cash or stocks
     const totalCondoCost = yearlyData.reduce((sum, data) => sum + data.netCondoCost, 0) -
                            netSaleProceeds +
                            initialExpenses;
 
+    // Calculate Internal Rate of Return (IRR)
+    // Prepare cash flow array for IRR calculation
+    const cashFlows = [];
+    
+    // Initial investment (negative cash flow)
+    cashFlows.push(-initialExpenses);  // This is safe because initialExpenses is defined earlier
+    
+    // Annual cash flows (negative for ownership costs, not counting equity)
+    for (let i = 0; i < yearlyData.length; i++) {
+        cashFlows.push(-yearlyData[i].netCondoCost);
+    }
+    
+    // Final year includes the sale proceeds (positive cash flow)
+    cashFlows[cashFlows.length - 1] += netSaleProceeds;
+    
+    // Calculate IRR
+    const irr = calculateIRR(cashFlows);
+    
     // Summary data
     const summaryData = [
         { description: 'Final Property Value', amount: finalPropertyValue },
@@ -384,7 +506,8 @@ function calculateHousingCosts(params) {
         { description: 'Net Sale Proceeds', amount: netSaleProceeds },
         { description: 'Total Condo Costs', amount: totalCondoCost },
         { description: 'Total Apartment Costs', amount: totalApartmentCost },
-        { description: 'Difference (Condo - Apartment)', amount: totalCondoCost - totalApartmentCost }
+        { description: 'Difference (Condo - Apartment)', amount: totalCondoCost - totalApartmentCost },
+        { description: 'Investment Return (IRR)', amount: irr, isPercentage: true },
     ];
 
     // Assumptions
@@ -515,4 +638,24 @@ function formatCurrency(value) {
         currency: 'USD',
         maximumFractionDigits: 0
     }).format(value);
+}
+
+// Utility function for formatting percentages or ratios
+function formatPercentOrRatio(value, isPercentage = true) {
+    if (isNaN(value)) {
+        return 'N/A';
+    }
+    
+    if (isPercentage) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'percent',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value / 100);
+    } else {
+        return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value);
+    }
 }

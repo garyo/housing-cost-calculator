@@ -282,6 +282,40 @@ describe('Financial Calculations', () => {
       expect(result.annualPrincipal).toBe(0);
     });
   });
+  
+  // Test Internal Rate of Return (IRR) calculation
+  describe('calculateIRR', () => {
+    test('basic IRR calculation with known outcome', () => {
+      // Initial investment of $1000, followed by returns of $500, $500, and $500
+      const cashFlows = [-1000, 500, 500, 500];
+      const result = financial.calculateIRR(cashFlows);
+      // The actual implementation gives ~23.4% which is in a reasonable range for this cashflow
+      expect(result).toBeGreaterThan(20);
+      expect(result).toBeLessThan(25);
+    });
+    
+    test('IRR for real estate investment scenario', () => {
+      // Initial down payment of $80,000, followed by annual costs and final sale proceeds
+      const cashFlows = [-80000, -10000, -10000, -10000, 150000];
+      const result = financial.calculateIRR(cashFlows);
+      
+      // Should return a positive IRR
+      expect(result).toBeGreaterThan(0);
+      // For this cash flow, the actual implementation gives ~9.3%
+      expect(result).toBeGreaterThan(8);
+      expect(result).toBeLessThan(11);
+    });
+    
+    test('returns NaN for all positive cash flows', () => {
+      const positiveFlows = [1000, 500, 500, 500];
+      expect(isNaN(financial.calculateIRR(positiveFlows))).toBe(true);
+    });
+    
+    test('returns NaN for all negative cash flows', () => {
+      const negativeFlows = [-1000, -500, -500, -500];
+      expect(isNaN(financial.calculateIRR(negativeFlows))).toBe(true);
+    });
+  });
 
   // Test calculateHousingCosts function
   describe('calculateHousingCosts', () => {
@@ -306,7 +340,8 @@ describe('Financial Calculations', () => {
         realtorFeePct: 6,
         capitalGainsRate: 15,
         discountRate: 3,
-        useTodaysDollars: false
+        useTodaysDollars: false,
+        isPrimaryResidence: true
       };
 
       const result = financial.calculateHousingCosts(params);
@@ -625,6 +660,58 @@ describe('Financial Calculations', () => {
           expect(result[i].finalPropertyValue).toBeLessThan(resultWithoutDiscounting[i].finalPropertyValue);
         }
       }
+    });
+    
+    // Test the yearly IRR calculation in housing costs
+    test('yearly IRR calculation', () => {
+      // Set up a 3-year scenario to test yearly IRR calculation
+      const params = {
+        analysisYears: 3,
+        apartmentRent: 2000,
+        condoPrice: 400000,
+        downPaymentPct: 20,
+        downPaymentSource: 'cash',
+        heatingCost: 100,
+        maintenanceCost: 150,
+        mortgageRate: 4.5,
+        mortgageYears: 30,
+        propertyTaxRate: 10,
+        hoaRate: 0.1,
+        insuranceRate: 0.5,
+        federalTaxRate: 22,
+        stateTaxRate: 5,
+        appreciationRate: 5, // Higher appreciation for clear IRR growth
+        rentIncreaseRate: 2,
+        realtorFeePct: 6,
+        capitalGainsRate: 15,
+        discountRate: 3,
+        useTodaysDollars: false,
+        isPrimaryResidence: true
+      };
+
+      const result = financial.calculateHousingCosts(params);
+      
+      // Check that the IRR is calculated for each year
+      expect(result.yearlyData[0].irr).toBeDefined();
+      expect(result.yearlyData[1].irr).toBeDefined();
+      expect(result.yearlyData[2].irr).toBeDefined();
+      
+      // The IRR values should all be numeric (not NaN)
+      expect(isNaN(result.yearlyData[0].irr)).toBe(false);
+      expect(isNaN(result.yearlyData[1].irr)).toBe(false);
+      expect(isNaN(result.yearlyData[2].irr)).toBe(false);
+      
+      // IRR should improve over time in this appreciation-positive scenario
+      expect(result.yearlyData[1].irr).toBeGreaterThan(result.yearlyData[0].irr);
+      expect(result.yearlyData[2].irr).toBeGreaterThan(result.yearlyData[1].irr);
+      
+      // Find the summary IRR
+      const summaryIRR = result.summaryData.find(item => 
+        item.description === 'Investment Return (IRR)').amount;
+        
+      // The final IRR in the yearly data should be close to the calculated IRR 
+      // in the summary data (within 1% as they're calculated slightly differently)
+      expect(result.yearlyData[2].irr).toBeCloseTo(summaryIRR, 0);
     });
   });
 });

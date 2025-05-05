@@ -52,6 +52,12 @@ function createTable(data, columns, containerId) {
                     value = calculatePresentValue(value, row.year, discountRate);
                 }
                 td.innerHTML = column.format(value, row);
+            } else if (row.isPercentage) {
+                // Format as percentage if indicated
+                td.textContent = formatPercentOrRatio(row[column.field], true);
+            } else if (column.field === 'irr') {
+                // Format IRR as percentage
+                td.textContent = formatPercentOrRatio(row[column.field], true);
             } else {
                 td.textContent = row[column.field];
             }
