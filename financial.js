@@ -333,8 +333,8 @@ function calculateHousingCosts(params) {
         // Calculate tax savings from interest and property tax
         // Apply SALT and mortgage interest deduction limits
         
-        // SALT deduction limit - $10,000 cap on state/local tax deductions
-        const saltDeductionLimit = 10000;
+        // SALT deduction limit - $40,000 cap on state/local tax deductions (updated as of July 2025)
+        const saltDeductionLimit = 40000;
         // Mortgage interest deduction limit - interest on up to $750,000 of acquisition debt
         const mortgageInterestDeductionLimit = 750000;
         
@@ -536,7 +536,7 @@ function calculateHousingCosts(params) {
         { assumption: 'Rent Increase', value: `${rentIncreaseRate}%/yr` },
         { assumption: 'Federal Tax Rate', value: `${federalTaxRate}%` },
         { assumption: 'State Tax Rate', value: `${stateTaxRate}%` },
-        { assumption: 'SALT Deduction Limit', value: formatCurrency(10000) },
+        { assumption: 'SALT Deduction Limit', value: formatCurrency(40000) },
         { assumption: 'Mortgage Interest Deduction Limit', value: `Interest on up to ${formatCurrency(750000)}` },
         { assumption: 'Appreciation', value: `${appreciationRate}%/yr` },
         { assumption: 'Realtor Fee', value: `${realtorFeePct}%` },

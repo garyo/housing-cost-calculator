@@ -1,5 +1,5 @@
 // Define app version - automatically updated by git hooks
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 
 // Define parameter to element ID mapping at the global level
 const paramToElementMap = {
